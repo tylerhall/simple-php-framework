@@ -1,0 +1,15 @@
+# This turns on mod_rewrite and redirects any paths that don't physically exist
+# to /index.php. You can then access that path info (to determine what to do) in
+# PHP using $_SERVER['REQUEST_URI'] and $_SERVER['REDIRECT_URL']. This is an easy
+# way to avoid having hundreds of rewrite rules slowing down Apache and making things
+# more complicated than they should be.
+
+# Note: If you're having trouble making Apache pickup your .htaccess file,
+# make sure AllowOverride is set to "All" instead of "None".
+
+# RewriteEngine On
+# RewriteBase /
+
+# RewriteCond %{REQUEST_FILENAME} !-f # If not a file...
+# RewriteCond %{REQUEST_FILENAME} !-d # and not a directory...
+# RewriteRule . /index.php [L]        # serve index.php
