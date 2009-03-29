@@ -24,7 +24,7 @@
             $this->user           = null;
             $this->loggedIn       = false;
 
-            if(class_exists('User') && (get_parent_class('User') == 'DBObject'))
+            if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
                 $this->user = new User();
 
             if(!is_null($user_to_impersonate))
@@ -66,7 +66,7 @@
             $this->user           = null;
             $this->loggedIn       = false;
 
-            if(class_exists('User') && (get_parent_class('User') == 'DBObject'))
+            if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
                 $this->user = new User();
 
             $_SESSION['un'] = '';
@@ -78,7 +78,7 @@
         public function changeUsername($new_username)
         {
             $db = Database::getDatabase();
-            $db->query("UPDATE users SET username = '?' WHERE id = '?'", $new_username, $this->id);
+            $db->query('UPDATE users SET username = :username WHERE id = :id', array('username' => $new_username, 'id' => $this->id));
             if($db->affectedRows() == 1)
             {
                 $this->impersonate($this->id);
@@ -96,7 +96,7 @@
             if($Config->useHashedPasswords === true)
                 $new_password = $this->createHashedPassword($new_password);
 
-            $db->query("UPDATE users SET password = '?' WHERE id = '?'", $new_password, $this->id);
+            $db->query('UPDATE users SET password = :password WHERE id = :id', array('password' => $new_password, 'id' => $this->id));
             if($db->affectedRows() == 1)
             {
                 $this->impersonate($this->id);
@@ -137,7 +137,7 @@
             if($Config->useHashedPasswords === true)
                 $pw = $this->createHashedPassword($pw);
 
-            $db->query("SELECT COUNT(*) FROM users WHERE username = '?' AND password = BINARY '?'", $this->username, $pw);
+            $db->query('SELECT COUNT(*) FROM users WHERE username = :username AND password = BINARY :password', array('username' => $this->username, 'password' => $pw));
             return $db->getValue() == 1;
         }
 
@@ -162,7 +162,7 @@
                 $this->level    = $row['level'];
 
                 // Load any additional user info if DBObject and User are available
-                if(class_exists('User') && (get_parent_class('User') == 'DBObject'))
+                if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
                 {
                     $this->user = new User();
                     $this->user->id = $row['id'];
@@ -227,7 +227,7 @@
             $this->level    = $row['level'];
 
             // Load any additional user info if DBObject and User are available
-            if(class_exists('User') && (get_parent_class('User') == 'DBObject'))
+            if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
             {
                 $this->user = new User();
                 $this->user->id = $row['id'];

@@ -34,7 +34,7 @@
         }
 
         // Get Singleton object
-        public static function getDatabase($connect = false)
+        public static function getDatabase($connect = true)
         {
             if(is_null(self::$me))
                 self::$me = new Database($connect);
@@ -63,17 +63,21 @@
             return $this->isConnected();
         }
 
-        public function query($sql)
+        public function query($sql, $args_to_prepare = null, $exception_on_missing_args = true)
         {
             if(!$this->isConnected()) $this->connect();
 
-            // Optionally allow extra args which are escaped and inserted in place of '?'.
-            if(func_num_args() > 1)
+            // Allow for prepared arguments. Example:
+            // query("SELECT * FROM table WHERE id = :id", array('id' => $some_val));
+            if(is_array($args_to_prepare))
             {
-                $args = array_slice(func_get_args(), 1);
-                for($i = 0; $i < count($args); $i++)
-                    $args[$i] = $this->escape($args[$i]);
-                $sql = vsprintf(str_replace('?', '%s', $sql), $args);
+                foreach($args_to_prepare as $name => $val)
+                {
+                    $val = $this->quote($val);
+                    $sql = str_replace(":$name", $val, $sql, $count);
+                    if($exception_on_missing_args && (0 == $count))
+                        throw new Exception(":$name was not found in prepared SQL query.");
+                }
             }
 
             $this->queries[] = $sql;
