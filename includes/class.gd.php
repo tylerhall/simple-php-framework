@@ -20,7 +20,7 @@
                 return false;
         }
 
-        public function loadResource($im)
+        private function loadResource($im)
         {
             if(!is_resource($im) || !get_resource_type($im) == 'gd') return false;
 
@@ -31,7 +31,7 @@
             return true;
         }
 
-        public function loadFile($filename)
+        private function loadFile($filename)
         {
             if(!file_exists($filename) || !is_readable($filename)) return false;
 
@@ -53,7 +53,7 @@
             return true;
         }
 
-        public function loadString($str)
+        private function loadString($str)
         {
             $im = imagecreatefromstring($str);
             return ($im === false) ? false : $this->loadResource($im);
