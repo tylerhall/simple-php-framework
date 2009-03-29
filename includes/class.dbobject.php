@@ -6,11 +6,19 @@
         public $idColumnName;
 
         protected $columns = array();
-
-        protected function __construct($table_name, $id_column_name, $columns, $id = null)
+		protected $className;
+		
+        protected function __construct($table_name, $columns, $id = null)
         {
-            $this->tableName = $table_name;
-            $this->idColumnName = $id_column_name;
+			$this->className    = get_class($this);
+            $this->tableName    = $table_name;
+
+			// A note on hardcoding $this->idColumnName = 'id'...
+			// In three years working with this framework, I've used
+			// a different id name exactly once - so I've decided to
+			// drop the option from the constructor. You can overload
+			// the constructor yourself if you have the need.
+            $this->idColumnName = 'id';
 
             foreach($columns as $col)
                 $this->columns[$col] = null;
@@ -34,6 +42,7 @@
         {
             if(array_key_exists($key, $this->columns))
                 $this->columns[$key] = $value;
+
             return $value; // Seriously.
         }
 
@@ -172,10 +181,10 @@
     {
         protected $tagColumnName;
 
-        public function __construct($table_name, $id_column_name, $columns, $id = null)
+        public function __construct($table_name, $columns, $id = null)
         {
-            parent::__construct($table_name, $id_column_name, $columns, $id);
-            $this->tagColumnName = strtolower(get_class($this) . '_id');
+            parent::__construct($table_name, $columns, $id);
+            $this->tagColumnName = strtolower($this->className . '_id');
         }
 
         public function addTag($name)

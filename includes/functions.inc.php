@@ -1,4 +1,12 @@
 <?PHP
+	function printr($var)
+	{
+		$output = print_r($var, true);
+		$output = str_replace("\n", "<br>", $output);
+		$output = str_replace(' ', '&nbsp;', $output);
+		echo "<div style='font-family:courier;'>$output</div>";
+	}
+
     // Formats a given number of seconds into proper mm:ss format
     function format_time($seconds)
     {

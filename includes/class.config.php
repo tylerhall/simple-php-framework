@@ -15,7 +15,7 @@
         // Add your server hostnames to the appropriate arrays. ($_SERVER['HTTP_HOST'])
         private $productionServers = array();
         private $stagingServers    = array();
-        private $localServers      = array('framework.site');
+        private $localServers      = array('feeddinner-vm0.corp.yahoo.com');
 
         // Standard Config Options...
 
@@ -111,9 +111,9 @@
 
             define('WEB_ROOT', '');
 
-            $this->dbHost       = '';
-            $this->dbName       = '';
-            $this->dbUsername   = '';
+            $this->dbHost       = 'localhost';
+            $this->dbName       = 'framework';
+            $this->dbUsername   = 'root';
             $this->dbPassword   = '';
             $this->dbDieOnError = true;
         }
