@@ -12,7 +12,7 @@
         // Singleton object. Leave $me alone.
         private static $me;
 
-        // Add your server names to the appropriate arrays.
+        // Add your server hostnames to the appropriate arrays. ($_SERVER['HTTP_HOST'])
         private $productionServers = array();
         private $stagingServers    = array();
         private $localServers      = array('framework.site');
@@ -39,12 +39,16 @@
         {
             $this->everywhere();
 
-            if(in_array($_SERVER['HTTP_HOST'], $this->productionServers))
+            $i_am_here = $this->whereAmI();
+
+            if('production' == $i_am_here)
                 $this->production();
-            elseif(in_array($_SERVER['HTTP_HOST'], $this->stagingServers))
+            elseif('staging' == $i_am_here)
                 $this->staging();
-            elseif(in_array($_SERVER['HTTP_HOST'], $this->localServers))
+            elseif('local' == $i_am_here)
                 $this->local();
+            elseif('shell' == $i_am_here)
+                $this->shell();
             else
                 die('<h1>Where am I?</h1> <p>You need to setup your server names in <code>class.config.php</code></p>
                      <p><code>$_SERVER[\'HTTP_HOST\']</code> reported <code>' . $_SERVER['HTTP_HOST'] . '</code></p>');
@@ -107,9 +111,24 @@
 
             define('WEB_ROOT', '');
 
-            $this->dbHost       = 'localhost';
-            $this->dbName       = 'framework15';
-            $this->dbUsername   = 'root';
+            $this->dbHost       = '';
+            $this->dbName       = '';
+            $this->dbUsername   = '';
+            $this->dbPassword   = '';
+            $this->dbDieOnError = true;
+        }
+
+        // Add code/variables to be run only on when script is launched from the shell
+        private function shell()
+        {
+            ini_set('display_errors', '1');
+            ini_set('error_reporting', E_ALL);
+
+            define('WEB_ROOT', '');
+
+            $this->dbHost       = '';
+            $this->dbName       = '';
+            $this->dbUsername   = '';
             $this->dbPassword   = '';
             $this->dbDieOnError = true;
         }
@@ -122,6 +141,8 @@
                 return 'staging';
             elseif(in_array($_SERVER['HTTP_HOST'], $this->localServers))
                 return 'local';
+            elseif(isset($_ENV['SHELL']))
+                return 'shell';
             else
                 return false;
         }
