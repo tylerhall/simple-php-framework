@@ -23,12 +23,8 @@
 			if(array_key_exists($key, $this->hasOne))
 				return $this->getHasOne($key);
 
-			if($key[strlen($key) - 1] == 's')
-			{
-				$tmpkey = substr($key, 0, strlen($key) - 1);
-				if(array_key_exists($tmpkey, $this->hasMany))
-					return $this->getHasMany($tmpkey);
-			}
+			if(array_key_exists($key, $this->hasMany))
+				return $this->getHasMany($key);
 
             return null;
         }
@@ -39,6 +35,8 @@
                 $this->columns[$key] = $value;
 			elseif(array_key_exists($key, $this->belongsTo))
 				$this->setBelongsTo($key, $value);
+			elseif(array_key_exists($key, $this->hasOne))
+				$this->setHasOne($key, $value);
 
             return $value;
         }
@@ -61,27 +59,31 @@
 		
 		protected function getBelongsTo($key)
 		{
-			$obj = new $this->belongsTo[$key]['class_name']($this->{$this->belongsTo[$key]['foreign_key']});
+			$obj = new $this->belongsTo[$key]['class_name'];
+			$obj->select($this->{$this->belongsTo[$key]['foreign_key']});
 			return is_null($obj->id) ? null : $obj;
 		}
 		
 		protected function setBelongsTo($key, $val)
 		{
 			$this->{$this->belongsTo[$key]['foreign_key']} = $val->{$this->belongsTo[$key]['primary_key']};
+			$this->update();
 		}
 		
 		// To be made in the object with the primary key
 		public function hasOne($class_name, $primary_key = null, $foreign_key = null)
 		{
-			$class_name = strtolower($class_name);
-
 			if(is_null($primary_key))
 				$primary_key = 'id';
 			
 			if(is_null($foreign_key))
-				$foreign_key = $class_name . '_id';
-			
-			$this->hasOne[$class_name] = array('primary_key' => $primary_key, 'foreign_key' => $foreign_key);
+				$foreign_key = strtolower($class_name . '_id');
+
+			// lcfirst() in PHP 5.3
+			$lcf_class_name = $class_name;
+			$lcf_class_name[0] = strtolower($lcf_class_name[0]);
+
+			$this->hasOne[$lcf_class_name] = array('primary_key' => $primary_key, 'foreign_key' => $foreign_key);
 		}
 
 		protected function getHasOne($key)
@@ -91,10 +93,11 @@
 			return is_null($obj->id) ? null : $obj;
 		}
 		
-		// protected function setHasOne($key, $val)
-		// {
-		// 	
-		// }
+		protected function setHasOne($key, $val)
+		{
+			$val->{$this->hasOne[$key]['foreign_key']} = $this->id;
+			$val->update();
+		}
 		
 		public function hasMany($class_name, $primary_key = null, $foreign_key = null)
 		{
@@ -112,7 +115,7 @@
 			$lcf_class_name = $class_name;
 			$lcf_class_name[0] = strtolower($lcf_class_name[0]);
 			
-			$this->hasMany[$lcf_class_name] = array('class_name' => $class_name, 'primary_key' => $primary_key, 'foreign_key' => $foreign_key);			
+			$this->hasMany[$lcf_class_name . 's'] = array('class_name' => $class_name, 'primary_key' => $primary_key, 'foreign_key' => $foreign_key);
 		}
 		
 		public function getHasMany($key)
