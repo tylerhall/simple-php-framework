@@ -35,6 +35,8 @@
             if((substr($key, 0, 2) == '__') && array_key_exists(substr($key, 2), $this->columns))
                 return htmlspecialchars($this->columns[substr($key, 2)]);
 
+			$trace = debug_backtrace();
+			trigger_error("Undefined property via DBObject::__get(): $key in {$trace[0]['file']} on line {$trace[0]['line']}", E_USER_NOTICE);
             return null;
         }
 
