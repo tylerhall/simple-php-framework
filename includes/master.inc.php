@@ -23,14 +23,14 @@
     $Config = Config::getConfig();
 
     // Store session info in the database?
-    // if($Config->useDBSessions === true)
-        // DBSession::register();
+    if($Config->useDBSessions === true)
+        DBSession::register();
 
     // Initialize our session
-    // session_start();
+    session_start();
 
     // Initialize current user
-    // $Auth = Auth::getAuth();
+    $Auth = Auth::getAuth();
 
     // Object for tracking and displaying error messages
     $Error = Error::getError();

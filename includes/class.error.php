@@ -246,6 +246,8 @@
         }
 
         // Valid URL?
+        // This is hardly perfect, but it's good enough for now...
+        // TODO: Make URL validation more robust
         public function url($val, $id, $name = null)
         {
             $info = @parse_url($val);

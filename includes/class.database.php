@@ -33,6 +33,12 @@
                 $this->connect();
         }
 
+        // Waiting (not so) patiently for 5.3.0...
+        public static function __callStatic($name, $args)
+        {
+            return self::$me->__call($name, $args);
+        }
+
         // Get Singleton object
         public static function getDatabase($connect = true)
         {
