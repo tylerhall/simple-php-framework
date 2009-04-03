@@ -3,7 +3,7 @@
     {
         public function __construct($id = '')
         {
-            parent::__construct('tags', 'id', array('name'), '');
+            parent::__construct('tags', array('name'), '');
             $this->select($id, 'name');
             if($this->id == '')
             {

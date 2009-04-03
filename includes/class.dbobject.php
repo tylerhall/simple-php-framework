@@ -6,18 +6,18 @@
         public $idColumnName;
 
         protected $columns = array();
-		protected $className;
-		
+        protected $className;
+
         protected function __construct($table_name, $columns, $id = null)
         {
-			$this->className    = get_class($this);
+            $this->className    = get_class($this);
             $this->tableName    = $table_name;
 
-			// A note on hardcoding $this->idColumnName = 'id'...
-			// In three years working with this framework, I've used
-			// a different id name exactly once - so I've decided to
-			// drop the option from the constructor. You can overload
-			// the constructor yourself if you have the need.
+            // A note on hardcoding $this->idColumnName = 'id'...
+            // In three years working with this framework, I've used
+            // a different id name exactly once - so I've decided to
+            // drop the option from the constructor. You can overload
+            // the constructor yourself if you have the need.
             $this->idColumnName = 'id';
 
             foreach($columns as $col)
@@ -35,8 +35,8 @@
             if((substr($key, 0, 2) == '__') && array_key_exists(substr($key, 2), $this->columns))
                 return htmlspecialchars($this->columns[substr($key, 2)]);
 
-			$trace = debug_backtrace();
-			trigger_error("Undefined property via DBObject::__get(): $key in {$trace[0]['file']} on line {$trace[0]['line']}", E_USER_NOTICE);
+            $trace = debug_backtrace();
+            trigger_error("Undefined property via DBObject::__get(): $key in {$trace[0]['file']} on line {$trace[0]['line']}", E_USER_NOTICE);
             return null;
         }
 
@@ -53,7 +53,7 @@
             $db = Database::getDatabase();
 
             if(is_null($column)) $column = $this->idColumnName;
-            $column = mysql_real_escape_string($column, $db->db);
+            $column = $db->escape($column);
 
             $db->query("SELECT * FROM `{$this->tableName}` WHERE `$column` = :id LIMIT 1", array('id' => $id));
             if($db->hasRows())
