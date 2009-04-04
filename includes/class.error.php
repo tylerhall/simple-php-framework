@@ -223,7 +223,7 @@
             foreach($ranges as $r)
             {
                 if($val >= $r[0] && $val <= $r[1])
-					return true;
+                    return true;
             }
 
             if(is_null($name)) $name = ucwords($id);

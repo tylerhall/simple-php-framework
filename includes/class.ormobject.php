@@ -1,5 +1,5 @@
 <?PHP
-	// ORMObject is brand new and totally untested as of 04/02/2009 - RTH
+    // ORMObject is brand new and totally untested as of 04/02/2009 - RTH
     class ORMObject extends DBObject
     {
         public static $_data;
@@ -168,7 +168,7 @@
 
             if($data['joined'])
             {
-                $join_table = $this->joinTable();
+                $join_table = $this->joinTable($this->tableName, $tmp_obj->tableName);
                 $data_b = ORMObject::$_data[$tmp_obj->className][strtolower($this->className . 's')];
                 $sql = "SELECT b.* FROM `$join_table` ab LEFT JOIN `$tmp_obj->tableName` b ON ab.{$data_b['fk']} = b.{$data_b['pk']} WHERE ab.{$data['fk']} = " . $db->quote($this->{$data['pk']});
             }
@@ -188,7 +188,7 @@
 
             if($data['joined'])
             {
-                $join_table = $this->joinTable();
+                $join_table = $this->joinTable($this->tableName, $tmp_obj->tableName);
                 $data_b = ORMObject::$_data[$tmp_obj->className][strtolower($this->className . 's')];
                 $sql = "SELECT b.{$data_b['pk']} FROM `$join_table` ab LEFT JOIN `$tmp_obj->tableName` b ON ab.{$data_b['fk']} = b.{$data_b['pk']} WHERE ab.{$data['fk']} = " . $db->quote($this->{$data['pk']});
             }
@@ -208,7 +208,7 @@
 
             if($data['joined'])
             {
-                $join_table = $this->joinTable();
+                $join_table = $this->joinTable($this->tableName, $tmp_obj->tableName);
                 $data_b = ORMObject::$_data[$tmp_obj->className][strtolower($this->className . 's')];
                 $sql = "SELECT COUNT(*) FROM `$join_table` ab LEFT JOIN `$tmp_obj->tableName` b ON ab.{$data_b['fk']} = b.{$data_b['pk']} WHERE ab.{$data['fk']} = " . $db->quote($this->{$data['pk']});
             }
@@ -228,7 +228,7 @@
 
             if($data['joined'])
             {
-                $join_table = $this->joinTable();
+                $join_table = $this->joinTable($this->tableName, $tmp_obj->tableName);
                 $sql = "DELETE FROM `$join_table` WHERE `{$data['fk']}` = " . $db->quote($this->{$data['pk']});
             }
             else
