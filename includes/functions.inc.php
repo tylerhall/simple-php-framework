@@ -1,11 +1,11 @@
 <?PHP
-	function printr($var)
-	{
-		$output = print_r($var, true);
-		$output = str_replace("\n", "<br>", $output);
-		$output = str_replace(' ', '&nbsp;', $output);
-		echo "<div style='font-family:courier;'>$output</div>";
-	}
+    function printr($var)
+    {
+        $output = print_r($var, true);
+        $output = str_replace("\n", "<br>", $output);
+        $output = str_replace(' ', '&nbsp;', $output);
+        echo "<div style='font-family:courier;'>$output</div>";
+    }
 
     // Formats a given number of seconds into proper mm:ss format
     function format_time($seconds)
@@ -150,6 +150,26 @@
                 $out .= '<option value="' . htmlspecialchars($row[$val], ENT_QUOTES) . '">' . $the_text . '</option>';
         }
         return $out;
+    }
+
+    // More robust strict date checking for string representations
+    function chkdate($str)
+    {
+        // Requires PHP 5.2
+        if(function_exists('date_parse'))
+        {
+            $info = date_parse($str);
+            if($info !== false && $info['error_count'] == 0)
+            {
+                if(checkdate($info['month'], $info['day'], $info['year']))
+                    return true;
+            }
+
+            return false;
+        }
+
+        // Else, for PHP < 5.2
+        return strtotime($str);
     }
 
     // Converts a date/timestamp into the specified format

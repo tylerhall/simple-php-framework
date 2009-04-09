@@ -165,10 +165,10 @@
             return true;
         }
 
-        // Is a string a parseable date?
+        // Is a string a parseable and valid date?
         public function date($val, $id)
         {
-            if(strtotime($val) === false)
+            if(chkdate($val) === false)
             {
                 $this->add($id, 'Please enter a valid date');
                 return false;
