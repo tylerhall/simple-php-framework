@@ -61,6 +61,13 @@
                 self::$me = new Config();
             return self::$me;
         }
+	
+        // Allow access to config settings statically.
+	// Ex: Config::get('some_value')
+	public static function get($key)
+        {
+            return self::$me->$key;
+        }
 
         // Add code to be run on all servers
         private function everywhere()
