@@ -61,10 +61,10 @@
                 self::$me = new Config();
             return self::$me;
         }
-	
+
         // Allow access to config settings statically.
-	// Ex: Config::get('some_value')
-	public static function get($key)
+        // Ex: Config::get('some_value')
+        public static function get($key)
         {
             return self::$me->$key;
         }
