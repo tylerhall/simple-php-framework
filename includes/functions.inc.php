@@ -204,9 +204,20 @@
     // Outputs hour, minute, am/pm dropdown boxes
     function hourmin($hid = 'hour', $mid = 'minute', $pid = 'ampm', $hval = null, $mval = null, $pval = null)
     {
-        if(is_null($hval)) $hval = date('h');
-        if(is_null($mval)) $mval = date('i');
-        if(is_null($pval)) $pval = date('a');
+        // Dumb hack to let you just pass in a timestamp instead
+        if(func_num_args() == 1)
+        {
+            list($hval, $mval, $pval) = explode(' ', date('g i a', strtotime($hid)));
+            $hid = 'hour';
+            $mid = 'minute';
+            $aid = 'ampm';
+        }
+        else
+        {
+            if(is_null($hval)) $hval = date('h');
+            if(is_null($mval)) $mval = date('i');
+            if(is_null($pval)) $pval = date('a');
+        }
 
         $hours = array(12, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11);
         $out = "<select name='$hid' id='$hid'>";
