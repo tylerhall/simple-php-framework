@@ -242,44 +242,43 @@
         return $out;
     }
 
-    // Outputs month, day, and year dropdown boxes with default values and custom id/names
-    function mdy($mid = 'month', $did = 'day', $yid = 'year', $mval = null, $dval = null, $yval = null)
+    // Returns the HTML for a month, day, and year dropdown boxes.
+    // You can set the default date by passing in a timestamp OR a parseable date string.
+    // $prefix_ will be appened to the name/id's of each dropdown, allowing for multiple calls in the same form.
+    // $output_format lets you specify which dropdowns appear and in what order.
+    function mdy($date = null, $prefix = null, $output_format = 'm d y')
     {
-        // Dumb hack to let you just pass in a timestamp instead
-        if(func_num_args() == 1)
-        {
-            list($yval, $mval, $dval) = explode(' ', date('Y m d', $mid));
-            $mid = 'month';
-            $did = 'day';
-            $yid = 'year';
-        }
-        else
-        {
-            if(is_null($mval)) $mval = date('m');
-            if(is_null($dval)) $dval = date('d');
-            if(is_null($yval)) $yval = date('Y');
-        }
+        if(is_null($date)) $date = time();
+        if(!ctype_digit($date)) $date = strtotime($date);
+        if(!is_null($prefix)) $prefix .= '_';
+        list($yval, $mval, $dval) = explode(' ', date('Y n j', $date));
 
-        $months = array(1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December');
-        $out = "<select name='$mid' id='$mid'>";
-        foreach($months as $val => $text)
-            if($val == $mval) $out .= "<option value='$val' selected>$text</option>";
-            else $out .= "<option value='$val'>$text</option>";
-        $out .= "</select> ";
+        $month_dd = "<select name='{$prefix}month' id='{$prefix}month'>";
+        for($i = 1; $i <= 12; $i++)
+        {
+            $selected = ($mval == $i) ? ' selected="selected"' : '';
+            $month_dd .= "<option value='$i'$selected>" . date('F', mktime(0, 0, 0, $i, 1, 2000)) . "</option>";
+        }
+        $month_dd .= "</select>";
 
-        $out .= "<select name='$did' id='$did'>";
+        $day_dd = "<select name='{$prefix}day' id='{$prefix}day'>";
         for($i = 1; $i <= 31; $i++)
-            if($i == $dval) $out .= "<option value='$i' selected>$i</option>";
-            else $out .= "<option value='$i'>$i</option>";
-        $out .= "</select> ";
+        {
+            $selected = ($dval == $i) ? ' selected="selected"' : '';
+            $day_dd .= "<option value='$i'$selected>$i</option>";
+        }
+        $day_dd .= "</select>";
 
-        $out .= "<select name='$yid' id='$yid'>";
-        for($i = date('Y') - 2; $i <= date('Y') + 2; $i++)
-            if($i == $yval) $out.= "<option value='$i' selected>$i</option>";
-            else $out.= "<option value='$i'>$i</option>";
-        $out .= "</select>";
+        $year_dd = "<select name='{$prefix}year' id='{$prefix}year'>";
+        for($i = date('Y'); $i < date('Y') + 10; $i++)
+        {
+            $selected = ($yval == $i) ? ' selected="selected"' : '';
+            $year_dd .= "<option value='$i'$selected>$i</option>";
+        }
+        $year_dd .= "</select>";
 
-        return $out;
+        $trans = array('m' => $month_dd, 'd' => $day_dd, 'y' => $year_dd);
+        return strtr($output_format, $trans);
     }
 
     // Redirects user to $url
