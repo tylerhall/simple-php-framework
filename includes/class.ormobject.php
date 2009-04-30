@@ -14,8 +14,11 @@
 
         public function __get($key)
         {
-            $value = @parent::__get($key);
-            if(!is_null($value)) return $value;
+            if(array_key_exists($key, $this->columns))
+                return $this->columns[$key];
+
+            if((substr($key, 0, 2) == '__') && array_key_exists(substr($key, 2), $this->columns))
+                return htmlspecialchars($this->columns[substr($key, 2)]);
 
             if(isset(ORMObject::$_data[$this->className][strtolower($key)]))
                 return $this->{ORMObject::$_data[$this->className][strtolower($key)]['getter']}($key);
@@ -170,14 +173,19 @@
             {
                 $join_table = $this->joinTable($this->tableName, $tmp_obj->tableName);
                 $data_b = ORMObject::$_data[$tmp_obj->className][strtolower($this->className . 's')];
-                $sql = "SELECT b.* FROM `$join_table` ab LEFT JOIN `$tmp_obj->tableName` b ON ab.{$data_b['fk']} = b.{$data_b['pk']} WHERE ab.{$data['fk']} = " . $db->quote($this->{$data['pk']});
+                $sql = "SELECT b.*, ab.* FROM `$join_table` ab LEFT JOIN `$tmp_obj->tableName` b ON ab.{$data_b['fk']} = b.{$data_b['pk']} WHERE ab.{$data['fk']} = " . $db->quote($this->{$data['pk']});
+            	return DBObject::glob($data['fc'], $sql);
             }
             else
             {
-                $sql = "SELECT * FROM `{$tmp_obj->tableName}` WHERE `{$data['fk']}` = " . $db->quote($this->id);
-            }
+				if(isset($data['sort']))
+					$sorter = " SORT BY `{$data['sort']}` ";
+				else
+					$sorter = '';
 
-            return DBObject::glob($data['fc'], $sql);
+                $sql = "SELECT * FROM `{$tmp_obj->tableName}` WHERE `{$data['fk']}` = " . $db->quote($this->id) . $sorter;
+            	return DBObject::glob($data['fc'], $sql);
+            }
         }
 
         protected function getHasManyIds($key)

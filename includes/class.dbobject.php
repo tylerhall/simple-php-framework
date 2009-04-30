@@ -66,6 +66,11 @@
             return false;
         }
 
+        public function ok()
+        {
+            return !is_null($this->id);
+        }
+
         public function save()
         {
             if(is_null($this->id))

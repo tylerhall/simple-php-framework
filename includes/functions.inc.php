@@ -133,6 +133,7 @@
         $db = Database::getDatabase(true);
         $out = '';
 
+        $table = $db->escape($table);
         $rows = $db->getRows("SELECT * FROM `$table` $sql");
         foreach($rows as $row)
         {
