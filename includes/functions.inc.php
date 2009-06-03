@@ -306,7 +306,7 @@
     function gimme($arr, $key = null)
     {
         if(is_null($key))
-            $key = array_shift(array_keys($arr));
+            $key = current(array_keys($arr));
 
         $out = array();
         foreach($arr as $a)
@@ -383,11 +383,11 @@
     // Tests for a valid email address and optionally tests for valid MX records, too.
     function valid_email($email, $test_mx = false)
     {
-        if(eregi("^([_a-z0-9+-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$", $email))
+        if(preg_match("/^([_a-z0-9+-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/i", $email))
         {
             if($test_mx)
             {
-                list( , $domain) = split("@", $email);
+                list( , $domain) = explode("@", $email);
                 return getmxrr($domain, $mxrecords);
             }
             else
