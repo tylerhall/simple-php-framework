@@ -43,13 +43,13 @@
                         echo "Info: {$this->info}\n";
                     echo "\n";
                 }
-				elseif($log['result'] == 'pass')
-				{
+                elseif($log['result'] == 'pass')
+                {
                     // echo "PASSED {$log['function']}\n";
-				}
+                }
             }
 
-			echo get_class($this) . ' - ';
+            echo get_class($this) . ' - ';
             if($this->numFail == 0)
                 echo "Passed {$this->numPass} tests successfully.\n";
             else

@@ -84,31 +84,31 @@
             }
         }
 
-		function testSlash()
-		{
-			$this->equals(slash('foobar/'), 'foobar/');
-			$this->equals(slash('/foobar/'), '/foobar/');
-			$this->equals(slash('/foobar'), '/foobar/');
-			$this->equals(slash('/foobar///'), '/foobar/');
-		}
+        function testSlash()
+        {
+            $this->equals(slash('foobar/'), 'foobar/');
+            $this->equals(slash('/foobar/'), '/foobar/');
+            $this->equals(slash('/foobar'), '/foobar/');
+            $this->equals(slash('/foobar///'), '/foobar/');
+        }
 
-		function testUnslash()
-		{
-			$this->equals(unslash('foobar/'), 'foobar');
-			$this->equals(unslash('/foobar/'), '/foobar');
-			$this->equals(unslash('/foobar'), '/foobar');
-			$this->equals(unslash('/foobar///'), '/foobar');
-		}
-		
-		function testGimme()
-		{
-			$arr = array(array(1, 3, 5, 7, 9),
-						 array(2, 4, 5, 6, 1),
-						 array(3, 1, 4, 4, 5));
-			$this->true(array(1, 2, 3) === gimme($arr));
-			$this->true(array(3, 4, 1) === gimme($arr, 1));
-			$this->true(array(9, 1, 5) === gimme($arr, 4));
-		}
+        function testUnslash()
+        {
+            $this->equals(unslash('foobar/'), 'foobar');
+            $this->equals(unslash('/foobar/'), '/foobar');
+            $this->equals(unslash('/foobar'), '/foobar');
+            $this->equals(unslash('/foobar///'), '/foobar');
+        }
+        
+        function testGimme()
+        {
+            $arr = array(array(1, 3, 5, 7, 9),
+                         array(2, 4, 5, 6, 1),
+                         array(3, 1, 4, 4, 5));
+            $this->true(array(1, 2, 3) === gimme($arr));
+            $this->true(array(3, 4, 1) === gimme($arr, 1));
+            $this->true(array(9, 1, 5) === gimme($arr, 4));
+        }
 
         function testValidEmail()
         {

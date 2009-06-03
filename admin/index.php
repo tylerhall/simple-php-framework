@@ -1,7 +1,7 @@
 <?PHP
-	require '../includes/master.inc.php';
-	
-	$Auth->requireAdmin('../index.php');
+    require '../includes/master.inc.php';
+    
+    $Auth->requireAdmin('../index.php');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -17,9 +17,9 @@
 
 <body>
     <h1>Simple PHP Framework</h1>
-	<div id="main">
-		<h2>Sample Admin Area</h2>
-		<p>If you can view this page, you are logged in as an Admin level user.</p>
-	</div>
+    <div id="main">
+        <h2>Sample Admin Area</h2>
+        <p>If you can view this page, you are logged in as an Admin level user.</p>
+    </div>
 </body>
 </html>

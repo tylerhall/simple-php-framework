@@ -174,17 +174,17 @@
                 $join_table = $this->joinTable($this->tableName, $tmp_obj->tableName);
                 $data_b = ORMObject::$_data[$tmp_obj->className][strtolower($this->className . 's')];
                 $sql = "SELECT b.* FROM `$join_table` ab LEFT JOIN `$tmp_obj->tableName` b ON ab.{$data_b['fk']} = b.{$data_b['pk']} WHERE ab.{$data['fk']} = " . $db->quote($this->{$data['pk']});
-            	return DBObject::glob($data['fc'], $sql);
+                return DBObject::glob($data['fc'], $sql);
             }
             else
             {
-				if(isset($data['sort']))
-					$sorter = " SORT BY `{$data['sort']}` ";
-				else
-					$sorter = '';
+                if(isset($data['sort']))
+                    $sorter = " SORT BY `{$data['sort']}` ";
+                else
+                    $sorter = '';
 
                 $sql = "SELECT * FROM `{$tmp_obj->tableName}` WHERE `{$data['fk']}` = " . $db->quote($this->id) . $sorter;
-            	return DBObject::glob($data['fc'], $sql);
+                return DBObject::glob($data['fc'], $sql);
             }
         }
 
