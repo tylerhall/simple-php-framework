@@ -553,7 +553,7 @@
     }
 
     // Returns a file's mimetype based on its extension
-    function mime_type($filename)
+    function mime_type($filename, $default = 'application/octet-stream')
     {
         $mime_types = array('323'     => 'text/h323',
                             'acx'     => 'application/internet-property-stream',
@@ -599,6 +599,7 @@
                             'evy'     => 'application/envoy',
                             'exe'     => 'application/octet-stream',
                             'fif'     => 'application/fractals',
+                            'flac'    => 'audio/flac',
                             'flr'     => 'x-world/x-vrml',
                             'gif'     => 'image/gif',
                             'gtar'    => 'application/x-gtar',
@@ -651,6 +652,10 @@
                             'mvb'     => 'application/x-msmediaview',
                             'nws'     => 'message/rfc822',
                             'oda'     => 'application/oda',
+                            'oga'     => 'audio/ogg',
+                            'ogg'     => 'audio/ogg',
+                            'ogv'     => 'video/ogg',
+                            'ogx'     => 'application/ogg',
                             'p10'     => 'application/pkcs10',
                             'p12'     => 'application/x-pkcs12',
                             'p7b'     => 'application/x-pkcs7-certificates',
@@ -741,7 +746,6 @@
                             'xwd'     => 'image/x-xwindowdump',
                             'z'       => 'application/x-compress',
                             'zip'     => 'application/zip');
-
-        list($dir, $base, $ext, $file) = pathinfo($filename);
-        return isset($mime_types[$ext]) ? $mime_types[$ext] : 'application/octet-stream';
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        return isset($mime_types[$ext]) ? $mime_types[$ext] : $default;
     }

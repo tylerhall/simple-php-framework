@@ -145,4 +145,16 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('', pick());
         $this->assertEquals(1, pick(1));
     }
+
+    function testMimeType()
+    {
+        $this->assertEquals(mime_type('foo.tar.gz'), 'application/x-gzip');
+        $this->assertEquals(mime_type('foo.tar.gz', 'text/plain'), 'application/x-gzip');
+
+        $this->assertEquals(mime_type('foo.bar'), 'application/octet-stream');
+        $this->assertEquals(mime_type('foo.bar', 'text/plain'), 'text/plain');
+
+        $this->assertEquals(mime_type('TODO'), 'application/octet-stream');
+        $this->assertEquals(mime_type('TODO', 'text/plain'), 'text/plain');
+    }
 }
