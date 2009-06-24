@@ -39,7 +39,10 @@
             return false;
         }
 
-        // Get Singleton object
+        /**
+         * Standard singleton
+         * @return Auth
+         */
         public static function getAuth($user_to_impersonate = null)
         {
             if(is_null(self::$me))

@@ -54,7 +54,10 @@
                      <p><code>$_SERVER[\'HTTP_HOST\']</code> reported <code>' . $_SERVER['HTTP_HOST'] . '</code></p>');
         }
 
-        // Get Singleton object
+        /**
+         * Standard singleton
+         * @return Config
+         */
         public static function getConfig()
         {
             if(is_null(self::$me))
