@@ -27,7 +27,7 @@
         // Returns an unordered list of error messages
         public function __tostring()
         {
-            return $this->ul();
+            return $this->alert();
         }
 
         // Returns true if there are no errors
@@ -80,6 +80,19 @@
             foreach($this->errors as $error)
                 $out .= "<li>" . implode("</li><li>", $error) . "</li>";
             $out .= "</ul>";
+
+            return $out;
+        }
+
+        // Returns error alerts
+        public function alert()
+        {
+            if(count($this->errors) == 0)
+                return '';
+
+            $out = '';
+            foreach($this->errors as $error)
+                $out .= "<p class='alert error'>" . implode(' ', $error) . "</p>";
 
             return $out;
         }

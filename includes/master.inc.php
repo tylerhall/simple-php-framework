@@ -27,6 +27,7 @@
         DBSession::register();
 
     // Initialize our session
+	session_name('spfs');
     session_start();
 
     // Initialize current user

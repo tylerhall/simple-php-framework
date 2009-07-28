@@ -31,12 +31,10 @@
                 return $this->impersonate($user_to_impersonate);
 
             if($this->attemptSessionLogin())
-                return true;
+                return;
 
             if($this->attemptCookieLogin())
-                return true;
-
-            return false;
+                return;
         }
 
         /**
@@ -74,7 +72,7 @@
 
             $_SESSION['un'] = '';
             $_SESSION['pw'] = '';
-            setcookie('s', '', time() - 3600, '/', $Config->authDomain);
+            setcookie('spf', '.', time() - 3600, '/', $Config->authDomain);
         }
 
         // Assumes you have already checked for duplicate usernames
@@ -196,9 +194,10 @@
         // Attempt to login using data stored in a cookie
         private function attemptCookieLogin()
         {
-            if(isset($_COOKIE['s']) && is_string($_COOKIE['s']))
+            if(isset($_COOKIE['spf']) && is_string($_COOKIE['spf']))
             {
-                $s = json_decode($_COOKIE['s'], true);
+                $s = json_decode($_COOKIE['spf'], true);
+
                 if(isset($s['un']) && isset($s['pw']))
                 {
                     return $this->attemptLogin($s['un'], $s['pw']);
@@ -251,7 +250,7 @@
             $_SESSION['un'] = $un;
             $_SESSION['pw'] = $pw;
             $s = json_encode(array('un' => $un, 'pw' => $pw));
-            return setcookie('s', $s, time()+60*60*24*30, '/', $Config->authDomain);
+            return setcookie('spf', $s, time()+60*60*24*30, '/', $Config->authDomain);
         }
 
         private function createHashedPassword($pw)
