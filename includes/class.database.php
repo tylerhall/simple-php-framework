@@ -151,7 +151,7 @@
         public function getRow($arg = null)
         {
             $result = $this->resulter($arg);
-            return $this->hasRows() ? mysql_fetch_array($result, MYSQL_ASSOC) : false;
+            return $this->hasRows($result) ? mysql_fetch_array($result, MYSQL_ASSOC) : false;
         }
 
         // Returns an array of all the rows.
