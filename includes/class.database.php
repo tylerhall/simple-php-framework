@@ -142,7 +142,7 @@
             $values = array();
             mysql_data_seek($result, 0);
             while($row = mysql_fetch_array($result, MYSQL_ASSOC))
-                $values[] = array_pop($row);
+                $values[] = array_shift($row);
             return $values;
         }
 
