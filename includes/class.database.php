@@ -63,6 +63,7 @@
 
         public function connect()
         {
+            if($this->isConnected()) return true;
             $this->db = mysql_connect($this->host, $this->username, $this->password) or $this->notify();
             if($this->db === false) return false;
             mysql_select_db($this->name, $this->db) or $this->notify();
