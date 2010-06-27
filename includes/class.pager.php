@@ -11,7 +11,7 @@
         public $firstRecord; // Index of first record on current page
         public $lastRecord;  // Index of last record on current page
 
-        private $records;    // Used when iterating over object
+        protected $records;    // Used when iterating over object
 
         // Initialize the pager object with your settings and calculate the resultant values
         public function __construct($page, $per_page, $num_records)
