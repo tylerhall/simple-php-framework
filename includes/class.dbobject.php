@@ -143,6 +143,8 @@
         }
 
         // Grabs a large block of instantiated $class_name objects from the database using only one query.
+        // Note: Once PHP 5.3 becomes widespread, we can use get_called_class() to rewrite glob() and avoid
+        // having to call it via DBObject rather than the actual class we're targeting.
         public static function glob($class_name, $sql = null, $extra_columns = array())
         {
             $db = Database::getDatabase();
