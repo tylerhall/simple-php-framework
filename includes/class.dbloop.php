@@ -1,5 +1,5 @@
 <?PHP
-    class DBLoop implements Iterator
+    class DBLoop implements Iterator, Countable
     {
         private $position;
         private $className;
@@ -29,12 +29,12 @@
             $this->result = $db->query($sql);
         }
 
-        function rewind()
+        public function rewind()
         {
             $this->position = 0;
         }
 
-        function current()
+        public function current()
         {
             mysql_data_seek($this->result, $this->position);
             $row = mysql_fetch_array($this->result, MYSQL_ASSOC);
@@ -53,21 +53,26 @@
             return $o;
         }
 
-        function key()
+        public function key()
         {
             return $this->position;
         }
 
-        function next()
+        public function next()
         {
             $this->position++;
         }
 
-        function valid()
+        public function valid()
         {
             if($this->position < mysql_num_rows($this->result))
                 return mysql_data_seek($this->result, $this->position);
             else
                 return false;
+        }
+
+        public function count()
+        {
+            return mysql_num_rows($this->result);
         }
     }
