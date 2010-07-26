@@ -1,15 +1,17 @@
 <?PHP
     require 'includes/master.inc.php';
 
-    // Kick out user if already logged in.
-    if($Auth->loggedIn()) redirect('index.php');
+    if($Auth->loggedIn()) redirect('/');
 
-    // Try to log in...
     if(!empty($_POST['username']))
     {
-        $Auth->login($_POST['username'], $_POST['password']);
-        if($Auth->loggedIn())
-            redirect('index.php');
+        if($Auth->login($_POST['username'], $_POST['password']))
+        {
+            if(isset($_REQUEST['r']) && strlen($_REQUEST['r']) > 0)
+                redirect($_REQUEST['r']);
+            else
+                redirect('/');
+        }
         else
             $Error->add('username', "We're sorry, you have entered an incorrect username and password. Please try again.");
     }
@@ -23,23 +25,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Simple PHP Framework</title>
+    <title>Sample Login Page</title>
     <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/reset-fonts-grids/reset-fonts-grids.css">
     <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/base/base-min.css">
-    <link rel="stylesheet" href="styles/screen.css" type="text/css" media="screen" title="Screen" charset="utf-8" />
 </head>
-
 <body>
-    <h1>Simple PHP Framework</h1>
-    <div id="main">
-        <h2>Sample Login Form</h2>
-        <form action="login.php" method="post">
-            <p>This is a sample login form that demonstrates how to use the <code>Auth</code> class to login a user.</p>
-            <?PHP echo $Error; ?>
-            <p><label for="username">Username:</label> <input type="text" name="username" value="<?PHP echo $username;?>" id="username" /></p>
-            <p><label for="password">Password:</label> <input type="password" name="password" value="" id="password" /></p>
-            <p><input type="submit" name="btnlogin" value="Login" id="btnlogin" /></p>
-        </form>
-    </div>
+    <form action="<?PHP echo $_SERVER['PHP_SELF']; ?>" method="post">
+        <?PHP echo $Error; ?>
+        <p><label for="username">Username:</label> <input type="text" name="username" value="<?PHP echo $username;?>" id="username" /></p>
+        <p><label for="password">Password:</label> <input type="password" name="password" value="" id="password" /></p>
+        <p><input type="submit" name="btnlogin" value="Login" id="btnlogin" /></p>
+        <input type="hidden" name="r" value="<?PHP echo htmlspecialchars(@$_REQUEST['r']); ?>" id="r">
+    </form>
 </body>
 </html>

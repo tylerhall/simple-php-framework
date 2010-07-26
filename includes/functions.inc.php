@@ -1,4 +1,27 @@
 <?PHP
+    function set_option($key, $val)
+    {
+        $db = Database::getDatabase();
+        $db->query('REPLACE INTO options (`key`, `value`) VALUES (:key:, :value:)', array('key' => $key, 'value' => $val));
+    }
+
+    function get_option($key, $default = null)
+    {
+        $db = Database::getDatabase();
+        $db->query('SELECT `value` FROM options WHERE `key` = :key:', array('key' => $key));
+        if($db->hasRows())
+            return $db->getValue();
+        else
+            return $default;
+    }
+
+    function delete_option($key)
+    {
+        $db = Database::getDatabase();
+        $db->query('DELETE FROM options WHERE `key` = :key:', array('key' => $key));
+        return $db->affectedRows();
+    }
+
     function printr($var)
     {
         $output = print_r($var, true);
@@ -62,7 +85,8 @@
             if($day_diff < 7) return $day_diff . ' days ago';
             if($day_diff < 31) return ceil($day_diff / 7) . ' weeks ago';
             if($day_diff < 60) return 'last month';
-            return date('F Y', $ts);
+            $ret = date('F Y', $ts);
+            return ($ret == 'December 1969') ? '' : $ret;
         }
         else
         {
@@ -80,7 +104,8 @@
             if($day_diff < 7 + (7 - date('w'))) return 'next week';
             if(ceil($day_diff / 7) < 4) return 'in ' . ceil($day_diff / 7) . ' weeks';
             if(date('n', $ts) == date('n') + 1) return 'next month';
-            return date('F Y', $ts);
+            $ret = date('F Y', $ts);
+            return ($ret == 'December 1969') ? '' : $ret;
         }
     }
 
@@ -477,6 +502,7 @@
     // Returns the lat, long of an address via Yahoo!'s geocoding service.
     // You'll need an App ID, which is available from here:
     // http://developer.yahoo.com/maps/rest/V1/geocode.html
+    // Note: needs to be updated to use PlaceFinder instead.
     function geocode($location, $appid)
     {
         $location = urlencode($location);
@@ -489,6 +515,13 @@
         $data = $data['ResultSet']['Result'];
 
         return array('lat' => $data['Latitude'], 'lng' => $data['Longitude']);
+    }
+
+    // A stub for Yahoo!'s reverse geocoding service
+    // http://developer.yahoo.com/geo/placefinder/
+    function reverse_geocode($lat, $lng)
+    {
+
     }
 
     // Quick and dirty wrapper for curl scraping.

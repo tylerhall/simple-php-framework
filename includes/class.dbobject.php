@@ -4,8 +4,7 @@
         public $id;
         public $tableName;
         public $idColumnName;
-
-        protected $columns = array();
+        public $columns = array();
         protected $className;
 
         protected function __construct($table_name, $columns, $id = null)
@@ -55,7 +54,7 @@
             if(is_null($column)) $column = $this->idColumnName;
             $column = $db->escape($column);
 
-            $db->query("SELECT * FROM `{$this->tableName}` WHERE `$column` = :id LIMIT 1", array('id' => $id));
+            $db->query("SELECT * FROM `{$this->tableName}` WHERE `$column` = :id: LIMIT 1", array('id' => $id));
             if($db->hasRows())
             {
                 $row = $db->getRow();
@@ -127,7 +126,7 @@
         {
             if(is_null($this->id)) return false;
             $db = Database::getDatabase();
-            $db->query("DELETE FROM `{$this->tableName}` WHERE `{$this->idColumnName}` = :id LIMIT 1", array('id' => $this->id));
+            $db->query("DELETE FROM `{$this->tableName}` WHERE `{$this->idColumnName}` = :id: LIMIT 1", array('id' => $this->id));
             return $db->affectedRows();
         }
 
@@ -206,7 +205,7 @@
             if($name == '') return false;
 
             $t = new Tag($name);
-            $db->query("INSERT IGNORE {$this->tableName}2tags ({$this->tagColumnName}, tag_id) VALUES (:obj_id, :tag_id)", array('obj_id' => $this->id, 'tag_id' => $t->id));
+            $db->query("INSERT IGNORE {$this->tableName}2tags ({$this->tagColumnName}, tag_id) VALUES (:obj_id:, :tag_id:)", array('obj_id' => $this->id, 'tag_id' => $t->id));
             return true;
         }
 
@@ -220,7 +219,7 @@
             if($name == '') return false;
 
             $t = new Tag($name);
-            $db->query("DELETE FROM {$this->tableName}2tags WHERE {$this->tagColumnName} = :obj_id AND tag_id = :tag_id", array('obj_id' => $this->id, 'tag_id' => $t->id));
+            $db->query("DELETE FROM {$this->tableName}2tags WHERE {$this->tagColumnName} = :obj_id: AND tag_id = :tag_id:", array('obj_id' => $this->id, 'tag_id' => $t->id));
             return true;
         }
 
@@ -228,7 +227,7 @@
         {
             $db = Database::getDatabase();
             if(is_null($this->id)) return false;
-            $db->query("DELETE FROM {$this->tableName}2tags WHERE {$this->tagColumnName} = :obj_id", array('obj_id' => $this->id));
+            $db->query("DELETE FROM {$this->tableName}2tags WHERE {$this->tagColumnName} = :obj_id:", array('obj_id' => $this->id));
             return true;
         }
 

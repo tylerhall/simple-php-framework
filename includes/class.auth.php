@@ -1,261 +1,312 @@
 <?PHP
     class Auth
     {
-        // Singleton object. Leave $me alone.
         private static $me;
 
         public $id;
         public $username;
-        public $level;
-        public $user; // DBObject User object (if available)
+        public $user;
+        public $expiryDate;
+        public $loginUrl;
 
+        private $nid;
         private $loggedIn;
 
-        // Call with no arguments to attempt to restore a previous logged in session
-        // which then falls back to a guest user (which can then be logged in using
-        // $this->login($un, $pw). Or pass a user_id to simply login that user. The
-        // $seriously is just a safeguard to be certain you really do want to blindly
-        // login a user. Set it to true.
-        private function __construct($user_to_impersonate = null)
+        public function __construct()
         {
-            $this->id             = null;
-            $this->username       = null;
-            $this->level          = 'guest';
-            $this->user           = null;
-            $this->loggedIn       = false;
-
-            if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
-                $this->user = new User();
-
-            if(!is_null($user_to_impersonate))
-                return $this->impersonate($user_to_impersonate);
-
-            if($this->attemptSessionLogin())
-                return;
-
-            if($this->attemptCookieLogin())
-                return;
+            $this->id         = null;
+            $this->nid        = null;
+            $this->username   = null;
+            $this->user       = null;
+            $this->loggedIn   = false;
+            $this->expiryDate = mktime(0, 0, 0, 6, 2, 2037);
+            $this->user       = new User();
+            $this->loginUrl   = WEB_ROOT . 'login.php';
         }
 
-        /**
-         * Standard singleton
-         * @return Auth
-         */
-        public static function getAuth($user_to_impersonate = null)
+        public static function getAuth()
         {
             if(is_null(self::$me))
-                self::$me = new Auth($user_to_impersonate);
+                self::$me = new Auth();
             return self::$me;
         }
 
-        // You'll typically call this function when a user logs in using
-        // a form. Pass in their username and password.
-        // Takes a username and a *plain text* password
-        public function login($un, $pw)
+        public function init()
         {
-            $pw = $this->createHashedPassword($pw);
-            return $this->attemptLogin($un, $pw);
+            $this->setACookie();
+            $this->loggedIn = $this->attemptCookieLogin();
         }
 
-        public function logout()
+        public function login($username, $password)
         {
-            $Config = Config::getConfig();
+            $this->loggedIn = false;
 
-            $this->id             = null;
-            $this->username       = null;
-            $this->level          = 'guest';
-            $this->user           = null;
-            $this->loggedIn       = false;
-
-            if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
-                $this->user = new User();
-
-            $_SESSION['un'] = '';
-            $_SESSION['pw'] = '';
-            setcookie('spf', '.', time() - 3600, '/', $Config->authDomain);
-        }
-
-        // Assumes you have already checked for duplicate usernames
-        public function changeUsername($new_username)
-        {
             $db = Database::getDatabase();
-            $db->query('UPDATE users SET username = :username WHERE id = :id', array('username' => $new_username, 'id' => $this->id));
-            if($db->affectedRows() == 1)
-            {
-                $this->impersonate($this->id);
-                return true;
-            }
+            $hashed_password = self::hashedPassword($password);
+            $row = $db->getRow("SELECT * FROM users WHERE username = " . $db->quote($username) . " AND password = " . $db->quote($hashed_password));
 
-            return false;
-        }
-
-        public function changePassword($new_password)
-        {
-            $db = Database::getDatabase();
-            $Config = Config::getConfig();
-
-            if($Config->useHashedPasswords === true)
-                $new_password = $this->createHashedPassword($new_password);
-
-            $db->query('UPDATE users SET password = :password WHERE id = :id', array('password' => $new_password, 'id' => $this->id));
-            if($db->affectedRows() == 1)
-            {
-                $this->impersonate($this->id);
-                return true;
-            }
-
-            return false;
-        }
-
-        // Is a user logged in? This was broken out into its own function
-        // in case extra logic is ever required beyond a simple bool value.
-        public function loggedIn()
-        {
-            return $this->loggedIn;
-        }
-
-        // Helper function that redirects away from 'admin only' pages
-        public function requireAdmin($url)
-        {
-            if(!$this->loggedIn() || $this->level != 'admin')
-                redirect($url);
-        }
-
-        // Helper function that redirects away from 'member only' pages
-        public function requireUser($url)
-        {
-            if(!$this->loggedIn())
-                redirect($url);
-        }
-
-        // Check if the submitted password matches what we have on file.
-        // Takes a *plain text* password
-        public function passwordIsCorrect($pw)
-        {
-            $db = Database::getDatabase();
-            $Config = Config::getConfig();
-
-            if($Config->useHashedPasswords === true)
-                $pw = $this->createHashedPassword($pw);
-
-            $db->query('SELECT COUNT(*) FROM users WHERE username = :username AND password = BINARY :password', array('username' => $this->username, 'password' => $pw));
-            return $db->getValue() == 1;
-        }
-
-        // Login a user simply by passing in their username or id. Does
-        // not check against a password. Useful for allowing an admin user
-        // to temporarily login as a standard user for troubleshooting.
-        // Takes an id or username
-        public function impersonate($user_to_impersonate)
-        {
-            $db = Database::getDatabase();
-            $Config = Config::getConfig();
-
-            if(ctype_digit($user_to_impersonate))
-                $row = $db->getRow('SELECT * FROM users WHERE id = ' . $db->quote($user_to_impersonate));
-            else
-                $row = $db->getRow('SELECT * FROM users WHERE username = ' . $db->quote($user_to_impersonate));
-
-            if(is_array($row))
-            {
-                $this->id       = $row['id'];
-                $this->username = $row['username'];
-                $this->level    = $row['level'];
-
-                // Load any additional user info if DBObject and User are available
-                if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
-                {
-                    $this->user = new User();
-                    $this->user->id = $row['id'];
-                    $this->user->load($row);
-                }
-
-                if($Config->useHashedPasswords === false)
-                    $row['password'] = $this->createHashedPassword($row['password']);
-
-                $this->storeSessionData($this->username, $row['password']);
-                $this->loggedIn = true;
-
-                return true;
-            }
-
-            return false;
-        }
-
-        // Attempt to login using data stored in the current session
-        private function attemptSessionLogin()
-        {
-            if(isset($_SESSION['un']) && isset($_SESSION['pw']))
-                return $this->attemptLogin($_SESSION['un'], $_SESSION['pw']);
-            else
+            if($row === false)
                 return false;
-        }
-
-        // Attempt to login using data stored in a cookie
-        private function attemptCookieLogin()
-        {
-            if(isset($_COOKIE['spf']) && is_string($_COOKIE['spf']))
-            {
-                $s = json_decode($_COOKIE['spf'], true);
-
-                if(isset($s['un']) && isset($s['pw']))
-                {
-                    return $this->attemptLogin($s['un'], $s['pw']);
-                }
-            }
-
-            return false;
-        }
-
-        // The function that actually verifies an attempted login and
-        // processes it if successful.
-        // Takes a username and a *hashed* password
-        private function attemptLogin($un, $pw)
-        {
-            $db = Database::getDatabase();
-            $Config = Config::getConfig();
-
-            // We SELECT * so we can load the full user record into the user DBObject later
-            $row = $db->getRow('SELECT * FROM users WHERE username = ' . $db->quote($un));
-            if($row === false) return false;
-
-            if($Config->useHashedPasswords === false)
-                $row['password'] = $this->createHashedPassword($row['password']);
-
-            if($pw != $row['password']) return false;
 
             $this->id       = $row['id'];
+            $this->nid      = $row['nid'];
             $this->username = $row['username'];
-            $this->level    = $row['level'];
+            $this->user     = new User();
+            $this->user->id = $this->id;
+            $this->user->load($row);
 
-            // Load any additional user info if DBObject and User are available
-            if(class_exists('User') && (is_subclass_of('User', 'DBObject')))
-            {
-                $this->user = new User();
-                $this->user->id = $row['id'];
-                $this->user->load($row);
-            }
+            $this->generateBCCookies();
 
-            $this->storeSessionData($un, $pw);
             $this->loggedIn = true;
 
             return true;
         }
 
-        // Takes a username and a *hashed* password
-        private function storeSessionData($un, $pw)
+        public function logout()
         {
-            if(headers_sent()) return false;
-            $Config = Config::getConfig();
-            $_SESSION['un'] = $un;
-            $_SESSION['pw'] = $pw;
-            $s = json_encode(array('un' => $un, 'pw' => $pw));
-            return setcookie('spf', $s, time()+60*60*24*30, '/', $Config->authDomain);
+            $this->loggedIn = false;
+            $this->clearCookies();
+            $this->sendToLoginPage();
         }
 
-        private function createHashedPassword($pw)
+        public function loggedIn()
         {
-            $Config = Config::getConfig();
-            return sha1($pw . $Config->authSalt);
+            return $this->loggedIn;
+        }
+
+        public function requireUser()
+        {
+            if(!$this->loggedIn())
+                $this->sendToLoginPage();
+        }
+
+        public function requireAdmin()
+        {
+            if(!$this->loggedIn() || !$this->isAdmin())
+                $this->sendToLoginPage();
+        }
+
+        public function isAdmin()
+        {
+            return ($this->user->level === 'admin');
+        }
+
+        public function changeCurrentUsername($new_username)
+        {
+            $db = Database::getDatabase();
+            srand(time());
+            $this->user->nid = Auth::newNid();
+            $this->user->username = $new_username;
+            $this->user->update();
+            $this->username = $this->user->username;
+            $this->nid = $this->user->nid;
+            $this->generateBCCookies();
+        }
+
+        public function changeCurrentPassword($new_password)
+        {
+            $db = Database::getDatabase();
+            srand(time());
+            $this->user->nid = self::newNid();
+            $this->user->password = self::hashedPassword($new_password);
+            $this->user->update();
+            $this->nid = $this->user->nid;
+            $this->generateBCCookies();
+        }
+
+        public static function changeUsername($id_or_username, $new_username)
+        {
+            if(ctype_digit($id_or_username))
+                $u = new User($id_or_username);
+            else
+            {
+                $u = new User();
+                $u->select($id_or_username, 'username');
+            }
+
+            if($u->ok())
+            {
+                $u->username = $new_username;
+                $u->update();
+            }
+        }
+
+        public static function changePassword($id_or_username, $new_password)
+        {
+            if(ctype_digit($id_or_username))
+                $u = new User($id_or_username);
+            else
+            {
+                $u = new User();
+                $u->select($id_or_username, 'username');
+            }
+
+            if($u->ok())
+            {
+                $u->nid = self::newNid();
+                $u->password = self::hashedPassword($new_password);
+                $u->update();
+            }
+        }
+
+        public static function createNewUser($username, $password)
+        {
+            srand(time());
+            $u = new User();
+            $u->username = $username;
+            $u->nid = self::newNid();
+            $u->password = self::hashedPassword($password);
+            $u->insert();
+            return $u;
+        }
+
+        // Generates a strong password of default length 9 characters.
+        // Contains at least one symbol and one number.
+        // The available characters have been chosen for legibility reasons.
+        // This prevents users from being confused by things like 'l' versus '1'
+        // and 'O' versus '0', etc.
+        public static function generateStrongPassword($length = 9)
+        {
+            $all = str_split('abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%&*');
+            $symbols = str_split('!@#$%&*');
+            $digits = str_split('23456789');
+
+            $password = '';
+            for($i = 0; $i < $length - 2; $i++)
+                $password .= $all[array_rand($all)];
+
+            $password .= $symbols[array_rand($symbols)];
+            $password .= $digits[array_rand($digits)];
+
+            return str_shuffle($password);
+        }
+
+        public function impersonateUser($id_or_username)
+        {
+            if(ctype_digit($id_or_username))
+                $u = new User($id_or_username);
+            else
+            {
+                $u = new User();
+                $u->select($id_or_username, 'username');
+            }
+
+            if(!$u->ok()) return false;
+
+            $this->id       = $u->id;
+            $this->nid      = $u->nid;
+            $this->username = $u->username;
+            $this->user     = $u;
+            $this->generateBCCookies();
+
+            return true;
+        }
+
+        private function attemptCookieLogin()
+        {
+            if(!isset($_COOKIE['A']) || !isset($_COOKIE['B']) || !isset($_COOKIE['C']))
+                return false;
+
+            $ccookie = base64_decode(str_rot13($_COOKIE['C']));
+            if($ccookie === false)
+                return false;
+
+            $c = array();
+            parse_str($ccookie, $c);
+            if(!isset($c['n']) || !isset($c['l']))
+                return false;
+
+            $bcookie = base64_decode(str_rot13($_COOKIE['B']));
+            if($bcookie === false)
+                return false;
+
+            $b = array();
+            parse_str($bcookie, $b);
+            if(!isset($b['s']) || !isset($b['x']))
+                return false;
+
+            if($b['x'] < time())
+                return false;
+
+            $computed_sig = md5(str_rot13(base64_encode($ccookie)) . $b['x'] . Config::get('authSalt'));
+            if($computed_sig != $b['s'])
+                return false;
+
+            $nid = base64_decode($c['n']);
+            if($nid === false)
+                return false;
+
+            $db = Database::getDatabase();
+
+            // We SELECT * so we can load the full user record into the DBObject later
+            $row = $db->getRow('SELECT * FROM users WHERE nid = ' . $db->quote($nid));
+            if($row === false)
+                return false;
+
+            $this->id       = $row['id'];
+            $this->nid      = $row['nid'];
+            $this->username = $row['username'];
+            $this->user     = new User();
+            $this->user->id = $this->id;
+            $this->user->load($row);
+
+            return true;
+        }
+
+        private function setACookie()
+        {
+            if(!isset($_COOKIE['A']))
+            {
+                srand(time());
+                $a = md5(rand() . microtime());
+                setcookie('A', $a, $this->expiryDate, '/', Config::get('authDomain'));
+            }
+        }
+
+        private function generateBCCookies()
+        {
+            $c  = '';
+            $c .= 'n=' . base64_encode($this->nid) . '&';
+            $c .= 'l=' . str_rot13($this->username) . '&';
+            $c = base64_encode($c);
+            $c = str_rot13($c);
+
+            $sig = md5($c . $this->expiryDate . Config::get('authSalt'));
+            $b = "x={$this->expiryDate}&s=$sig";
+            $b = base64_encode($b);
+            $b = str_rot13($b);
+
+            setcookie('B', $b, $this->expiryDate, '/', Config::get('authDomain'));
+            setcookie('C', $c, $this->expiryDate, '/', Config::get('authDomain'));
+        }
+
+        private function clearCookies()
+        {
+            setcookie('B', '', time() - 3600, '/', Config::get('authDomain'));
+            setcookie('C', '', time() - 3600, '/', Config::get('authDomain'));
+        }
+
+        private function sendToLoginPage()
+        {
+            $url = $this->loginUrl;
+
+            $full_url = full_url();
+            if(strpos($full_url, 'logout') === false)
+            {
+                $url .= '?r=' . $full_url;
+            }
+
+            redirect($url);
+        }
+
+        private static function hashedPassword($password)
+        {
+            return md5($password . Config::get('authSalt'));
+        }
+
+        private static function newNid()
+        {
+            srand(time());
+            return md5(rand() . microtime());
         }
     }

@@ -5,7 +5,7 @@
         {
             parent::__construct('tags', array('name'), '');
             $this->select($id, 'name');
-            if($this->id == '')
+            if(!$this->ok())
             {
                 $this->name = $id;
                 $this->insert();

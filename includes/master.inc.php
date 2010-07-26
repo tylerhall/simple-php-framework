@@ -23,11 +23,11 @@
     $Config = Config::getConfig();
 
     // Store session info in the database?
-    if($Config->useDBSessions === true)
+    if(Config::get('useDBSessions') === true)
         DBSession::register();
 
     // Initialize our session
-	session_name('spfs');
+    session_name('spfs');
     session_start();
 
     // Initialize current user

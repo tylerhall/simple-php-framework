@@ -13,10 +13,7 @@
             $this->style = $style;
         }
 
-        /**
-         * Standard singleton
-         * @return Error
-         */
+        // Get Singleton object
         public static function getError()
         {
             if(is_null(self::$me))

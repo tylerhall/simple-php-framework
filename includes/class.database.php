@@ -4,91 +4,132 @@
         // Singleton object. Leave $me alone.
         private static $me;
 
-        public $db;
-        public $host;
+        public $readDB;
+        public $writeDB;
+
+        public $readHost;
+        public $writeHost;
+
         public $name;
-        public $username;
-        public $password;
-        public $dieOnError;
+
+        public $readUsername;
+        public $writeUsername;
+
+        public $readPassword;
+        public $writePassword;
+
+        public $onError; // Can be '', 'die', or 'redirect'
+        public $emailOnError;
         public $queries;
         public $result;
 
-        public $redirect = false;
+        public $emailTo; // Where to send an error report
+        public $emailSubject;
+
+        public $errorUrl; // Where to redirect the user on error
 
         // Singleton constructor
-        private function __construct($connect = false)
+        private function __construct()
         {
-            $Config = Config::getConfig();
+            $this->readHost      = Config::get('dbReadHost');
+            $this->writeHost     = Config::get('dbWriteHost');
+            $this->name          = Config::get('dbName');
+            $this->readUsername  = Config::get('dbReadUsername');
+            $this->writeUsername = Config::get('dbWriteUsername');
+            $this->readPassword  = Config::get('dbReadPassword');
+            $this->writePassword = Config::get('dbWritePassword');
+            $this->onError       = Config::get('dbOnError');
+            $this->emailOnError  = Config::get('dbEmailOnError');
 
-            $this->host       = $Config->dbHost;
-            $this->name       = $Config->dbName;
-            $this->username   = $Config->dbUsername;
-            $this->password   = $Config->dbPassword;
-            $this->dieOnError = $Config->dbDieOnError;
-
-            $this->db = false;
+            $this->readDB  = false;
+            $this->writeDB = false;
             $this->queries = array();
-
-            if($connect === true)
-                $this->connect();
-        }
-
-        // Waiting (not so) patiently for 5.3.0...
-        public static function __callStatic($name, $args)
-        {
-            return self::$me->__call($name, $args);
         }
 
         // Get Singleton object
-        public static function getDatabase($connect = true)
+        public static function getDatabase()
         {
             if(is_null(self::$me))
-                self::$me = new Database($connect);
+                self::$me = new Database();
             return self::$me;
         }
 
-        // Do we have a valid database connection?
-        public function isConnected()
+        // Do we have a valid read-only database connection?
+        public function isReadConnected()
         {
-            return is_resource($this->db) && get_resource_type($this->db) == 'mysql link';
+            return is_resource($this->readDB) && get_resource_type($this->readDB) == 'mysql link';
+        }
+
+        // Do we have a valid read/write database connection?
+        public function isWriteConnected()
+        {
+            return is_resource($this->writeDB) && get_resource_type($this->writeDB) == 'mysql link';
         }
 
         // Do we have a valid database connection and have we selected a database?
         public function databaseSelected()
         {
-            if(!$this->isConnected()) return false;
-            $result = mysql_list_tables($this->name, $this->db);
+            if(!$this->isReadConnected()) return false;
+            $result = mysql_list_tables($this->name, $this->readDB);
             return is_resource($result);
         }
 
-        public function connect()
+        public function readConnect()
         {
-            if($this->isConnected()) return true;
-            $this->db = mysql_connect($this->host, $this->username, $this->password) or $this->notify();
-            if($this->db === false) return false;
-            mysql_select_db($this->name, $this->db) or $this->notify();
-            return $this->isConnected();
+            $this->readDB = mysql_connect($this->readHost, $this->readUsername, $this->readPassword) or $this->notify();
+            if($this->readDB === false) return false;
+
+            if(!empty($this->name))
+                mysql_select_db($this->name, $this->readDB) or $this->notify();
+
+            return $this->isReadConnected();
+        }
+
+        public function writeConnect()
+        {
+            $this->writeDB = mysql_connect($this->writeHost, $this->writeUsername, $this->writePassword) or $this->notify();
+            if($this->writeDB === false) return false;
+
+            if(!empty($this->name))
+                mysql_select_db($this->name, $this->writeDB) or $this->notify();
+
+            return $this->isWriteConnected();
         }
 
         public function query($sql, $args_to_prepare = null, $exception_on_missing_args = true)
         {
-            if(!$this->isConnected()) $this->connect();
+            // Read or Write connection?
+            $sql = trim($sql);
+            if(preg_match('/^(INSERT|UPDATE|REPLACE|DELETE)/i', $sql) == 0)
+            {
+                if(!$this->isReadConnected())
+                    $this->readConnect();
+
+                $the_db = $this->readDB;
+            }
+            else
+            {
+                if(!$this->isWriteConnected())
+                    $this->writeConnect();
+
+                $the_db = $this->writeDB;
+            }
 
             // Allow for prepared arguments. Example:
-            // query("SELECT * FROM table WHERE id = :id", array('id' => $some_val));
+            // query("SELECT * FROM table WHERE id = :id:", array('id' => $some_val));
             if(is_array($args_to_prepare))
             {
                 foreach($args_to_prepare as $name => $val)
                 {
                     $val = $this->quote($val);
-                    $sql = str_replace(":$name", $val, $sql, $count);
+                    $sql = str_replace(":$name:", $val, $sql, $count);
                     if($exception_on_missing_args && (0 == $count))
                         throw new Exception(":$name was not found in prepared SQL query.");
                 }
             }
 
             $this->queries[] = $sql;
-            $this->result = mysql_query($sql, $this->db) or $this->notify();
+            $this->result = mysql_query($sql, $the_db) or $this->notify();
             return $this->result;
         }
 
@@ -107,22 +148,18 @@
             return is_resource($result) && (mysql_num_rows($result) > 0);
         }
 
-        // Returns the number of rows affected by the previous operation
+        // Returns the number of rows affected by the previous WRITE operation
         public function affectedRows()
         {
-            if(!$this->isConnected()) return false;
-            return mysql_affected_rows($this->db);
+            if(!$this->isWriteConnected()) return false;
+            return mysql_affected_rows($this->writeDB);
         }
 
         // Returns the auto increment ID generated by the previous insert statement
         public function insertId()
         {
-            if(!$this->isConnected()) return false;
-            $id = mysql_insert_id($this->db);
-            if($id === 0 || $id === false)
-                return false;
-            else
-                return $id;
+            if(!$this->isWriteConnected()) return false;
+            return mysql_insert_id($this->writeDB);
         }
 
         // Returns a single value.
@@ -143,7 +180,7 @@
             $values = array();
             mysql_data_seek($result, 0);
             while($row = mysql_fetch_array($result, MYSQL_ASSOC))
-                $values[] = array_shift($row);
+                $values[] = array_pop($row);
             return $values;
         }
 
@@ -172,15 +209,14 @@
         // Escapes a value and wraps it in single quotes.
         public function quote($var)
         {
-            if(!$this->isConnected()) $this->connect();
             return "'" . $this->escape($var) . "'";
         }
 
         // Escapes a value.
         public function escape($var)
         {
-            if(!$this->isConnected()) $this->connect();
-            return mysql_real_escape_string($var, $this->db);
+            if(!$this->isReadConnected()) $this->readConnect();
+            return mysql_real_escape_string($var, $this->readDB);
         }
 
         public function numQueries()
@@ -198,12 +234,34 @@
 
         private function notify()
         {
-            $err_msg = mysql_error($this->db);
-            error_log($err_msg);
-
-            if($this->dieOnError === true)
+            if($this->emailOnError === true)
             {
-                echo "<p style='border:5px solid red;background-color:#fff;padding:5px;'><strong>Database Error:</strong><br/>$err_msg</p>";
+                $globals = print_r($GLOBALS, true);
+
+                $msg = '';
+                $msg .= "Url: " . full_url() . "\n";
+                $msg .= "Date: " . dater() . "\n";
+                $msg .= "Server: " . $_SERVER['SERVER_NAME'] . "\n";
+
+                $msg .= "ReadDB Error:\n" . mysql_error($this->readDB) . "\n\n";
+                $msg .= "WriteDB Error:\n" . mysql_error($this->writeDB) . "\n\n";
+
+                ob_start();
+                debug_print_backtrace();
+                $trace = ob_get_contents();
+                ob_end_clean();
+
+                $msg .= $trace . "\n\n";
+
+                $msg .= $globals;
+
+                mail($this->emailTo, $this->emailSubject, $msg);
+            }
+
+            if($this->onError == 'die')
+            {
+                echo "<p style='border:5px solid red;background-color:#fff;padding:5px;'><strong>Read Database Error:</strong><br/>" . mysql_error($this->readDB) . "</p>";
+                echo "<p style='border:5px solid red;background-color:#fff;padding:5px;'><strong>Write Database Error:</strong><br/>" . mysql_error($this->writeDB) . "</p>";
                 echo "<p style='border:5px solid red;background-color:#fff;padding:5px;'><strong>Last Query:</strong><br/>" . $this->lastQuery() . "</p>";
                 echo "<pre>";
                 debug_print_backtrace();
@@ -211,10 +269,9 @@
                 exit;
             }
 
-            if(is_string($this->redirect))
+            if($this->onError == 'redirect')
             {
-                header("Location: {$this->redirect}");
-                exit;
+                redirect($this->errorUrl);
             }
         }
 
