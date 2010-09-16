@@ -10,7 +10,7 @@
         public static function open()
         {
             $db = Database::getDatabase(true);
-            return $db->isConnected();
+            return $db->isWriteConnected();
         }
 
         public static function close()
