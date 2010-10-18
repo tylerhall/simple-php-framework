@@ -1,13 +1,15 @@
 <?PHP
     class Auth
     {
+        const SALT = 'insert some random text here';
+
         private static $me;
 
         public $id;
         public $username;
         public $user;
         public $expiryDate;
-        public $loginUrl;
+        public $loginUrl = '/login/'; // Where to direct users to login
 
         private $nid;
         private $loggedIn;
@@ -21,7 +23,6 @@
             $this->loggedIn   = false;
             $this->expiryDate = mktime(0, 0, 0, 6, 2, 2037);
             $this->user       = new User();
-            $this->loginUrl   = WEB_ROOT . 'login.php';
         }
 
         public static function getAuth()
@@ -96,10 +97,10 @@
             $db = Database::getDatabase();
             srand(time());
             $this->user->nid = Auth::newNid();
-            $this->user->username = $new_username;
-            $this->user->update();
-            $this->username = $this->user->username;
             $this->nid = $this->user->nid;
+            $this->user->username = $new_username;
+            $this->username = $this->user->username;
+            $this->user->update();
             $this->generateBCCookies();
         }
 
@@ -149,8 +150,11 @@
             }
         }
 
-        public static function createNewUser($username, $password)
+        public static function createNewUser($username, $password = null)
         {
+            if(is_null($password))
+                $password = Auth::generateStrongPassword();
+
             srand(time());
             $u = new User();
             $u->username = $username;
@@ -160,25 +164,44 @@
             return $u;
         }
 
-        // Generates a strong password of default length 9 characters.
-        // Contains at least one symbol and one number.
-        // The available characters have been chosen for legibility reasons.
-        // This prevents users from being confused by things like 'l' versus '1'
-        // and 'O' versus '0', etc.
-        public static function generateStrongPassword($length = 9)
+        public static function generateStrongPassword($length = 9, $add_dashes = false, $available_sets = 'luds')
         {
-            $all = str_split('abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$%&*');
-            $symbols = str_split('!@#$%&*');
-            $digits = str_split('23456789');
+            $sets = array();
+            if(strpos($available_sets, 'l') !== false)
+                $sets[] = 'abcdefghjkmnpqrstuvwxyz';
+            if(strpos($available_sets, 'u') !== false)
+                $sets[] = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+            if(strpos($available_sets, 'd') !== false)
+                $sets[] = '23456789';
+            if(strpos($available_sets, 's') !== false)
+                $sets[] = '!@#$%&*?';
 
+            $all = '';
             $password = '';
-            for($i = 0; $i < $length - 2; $i++)
+            foreach($sets as $set)
+            {
+                $password .= $set[array_rand(str_split($set))];
+                $all .= $set;
+            }
+
+            $all = str_split($all);
+            for($i = 0; $i < $length - count($sets); $i++)
                 $password .= $all[array_rand($all)];
 
-            $password .= $symbols[array_rand($symbols)];
-            $password .= $digits[array_rand($digits)];
+            $password = str_shuffle($password);
 
-            return str_shuffle($password);
+            if(!$add_dashes)
+                return $password;
+
+            $dash_len = floor(sqrt($length));
+            $dash_str = '';
+            while(strlen($password) > $dash_len)
+            {
+                $dash_str .= substr($password, 0, $dash_len) . '-';
+                $password = substr($password, $dash_len);
+            }
+            $dash_str .= $password;
+            return $dash_str;
         }
 
         public function impersonateUser($id_or_username)
@@ -228,7 +251,7 @@
             if($b['x'] < time())
                 return false;
 
-            $computed_sig = md5(str_rot13(base64_encode($ccookie)) . $b['x'] . Config::get('authSalt'));
+            $computed_sig = md5(str_rot13(base64_encode($ccookie)) . $b['x'] . self::SALT);
             if($computed_sig != $b['s'])
                 return false;
 
@@ -238,7 +261,7 @@
 
             $db = Database::getDatabase();
 
-            // We SELECT * so we can load the full user record into the DBObject later
+            // We SELECT * so we can load the full user record into the user DBObject later
             $row = $db->getRow('SELECT * FROM users WHERE nid = ' . $db->quote($nid));
             if($row === false)
                 return false;
@@ -271,7 +294,7 @@
             $c = base64_encode($c);
             $c = str_rot13($c);
 
-            $sig = md5($c . $this->expiryDate . Config::get('authSalt'));
+            $sig = md5($c . $this->expiryDate . self::SALT);
             $b = "x={$this->expiryDate}&s=$sig";
             $b = base64_encode($b);
             $b = str_rot13($b);
@@ -301,7 +324,7 @@
 
         private static function hashedPassword($password)
         {
-            return md5($password . Config::get('authSalt'));
+            return md5($password . self::SALT);
         }
 
         private static function newNid()
