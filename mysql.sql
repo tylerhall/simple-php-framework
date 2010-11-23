@@ -14,3 +14,11 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
 );
+
+CREATE TABLE `url_cache` (
+  `url` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `dt_refreshed` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `dt_expires` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `data` text COLLATE utf8_unicode_ci NOT NULL,
+  UNIQUE KEY `url` (`url`)
+);
