@@ -28,7 +28,10 @@
         public static function getAuth()
         {
             if(is_null(self::$me))
+            {
                 self::$me = new Auth();
+                self::$me->init();
+            }
             return self::$me;
         }
 
