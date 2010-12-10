@@ -1,7 +1,7 @@
 <?PHP
     require 'includes/master.inc.php';
 
-    if($Auth->loggedIn()) redirect('/');
+    if($Auth->loggedIn()) redirect(WEB_ROOT);
 
     if(!empty($_POST['username']))
     {
@@ -10,7 +10,7 @@
             if(isset($_REQUEST['r']) && strlen($_REQUEST['r']) > 0)
                 redirect($_REQUEST['r']);
             else
-                redirect('/');
+                redirect(WEB_ROOT);
         }
         else
             $Error->add('username', "We're sorry, you have entered an incorrect username and password. Please try again.");
