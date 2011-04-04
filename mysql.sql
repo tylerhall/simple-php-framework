@@ -1,5 +1,5 @@
 CREATE TABLE `sessions` (
-  `id` int(255) NOT NULL AUTO_INCREMENT,
+  `id` varchar(255) NOT NULL,
   `data` text NOT NULL,
   `updated_on` int(10) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
