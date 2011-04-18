@@ -9,7 +9,7 @@
         public $username;
         public $user;
         public $expiryDate;
-        public $loginUrl = '/login/'; // Where to direct users to login
+        public $loginUrl = '/login.php'; // Where to direct users to login
 
         private $nid;
         private $loggedIn;
