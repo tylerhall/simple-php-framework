@@ -38,3 +38,5 @@
 
     // Object for tracking and displaying error messages
     $Error = Error::getError();
+
+	// Auth::createNewUser('username', 'password');
