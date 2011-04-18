@@ -124,7 +124,7 @@
                     $val = $this->quote($val);
                     $sql = str_replace(":$name:", $val, $sql, $count);
                     if($exception_on_missing_args && (0 == $count))
-                        throw new Exception(":$name was not found in prepared SQL query.");
+                        throw new Exception(":$name: was not found in prepared SQL query.");
                 }
             }
 
