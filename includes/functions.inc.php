@@ -60,7 +60,7 @@
         return $protocol . "://" . $_SERVER['HTTP_HOST'] . $port . $_SERVER['REQUEST_URI'];
     }
 
-    // Returns an English representation of a past date within the last month
+    // Returns an English representation of a date
     // Graciously stolen from http://ejohn.org/files/pretty.js
     function time2str($ts)
     {
@@ -199,7 +199,7 @@
     }
 
     // Converts a date/timestamp into the specified format
-    function dater($date = null, $format = null)
+	function dater($date = null, $format = null)
     {
         if(is_null($format))
             $format = 'Y-m-d H:i:s';
@@ -207,11 +207,21 @@
         if(is_null($date))
             $date = time();
 
-        // if $date contains only numbers, treat it as a timestamp
-        if(ctype_digit($date) === true)
-            return date($format, $date);
-        else
-            return date($format, strtotime($date));
+		if(is_int($date))
+			return date($format, $date);
+		if(is_float($date))
+			return date($format, $date);
+		if(is_string($date)) {
+	        if(ctype_digit($date) === true)
+	            return date($format, $date);
+			if((preg_match('/[^0-9.]/', $date) == 0) && (substr_count($date, '.') <= 1))
+				return date($format, floatval($date));
+			return date($format, strtotime($date));
+		}
+		
+		// If $date is anything else, you're doing something wrong,
+		// so just let PHP error out however it wants.
+		return date($format, $date);
     }
 
     // Formats a phone number as (xxx) xxx-xxxx or xxx-xxxx depending on the length.
