@@ -580,9 +580,14 @@
     }
 
     // Class Autloader
-    function __autoload($class_name)
+    spl_autoload_register('framework_autoload');
+
+    function framework_autoload($class_name)
     {
-        require DOC_ROOT . '/includes/class.' . strtolower($class_name) . '.php';
+        $file = DOC_ROOT . '/includes/class.' . strtolower($class_name) . '.php';
+        echo $file;
+        if (file_exists($file))
+            require $file;
     }
 
     // Returns a file's mimetype based on its extension
