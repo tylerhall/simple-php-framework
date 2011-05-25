@@ -2,16 +2,16 @@
     // Application flag
     define('SPF', true);
 
-	// https://twitter.com/#!/marcoarment/status/59089853433921537
-	date_default_timezone_set('America/Los_Angeles');
+    // https://twitter.com/#!/marcoarment/status/59089853433921537
+    date_default_timezone_set('America/Los_Angeles');
 
     // Determine our absolute document root
     define('DOC_ROOT', realpath(dirname(__FILE__) . '/../'));
 
     // Global include files
-    require DOC_ROOT . '/includes/functions.inc.php'; // __autoload() is contained in this file
-    require DOC_ROOT . '/includes/class.dbobject.php';
-    require DOC_ROOT . '/includes/class.objects.php';
+    require DOC_ROOT . '/includes/functions.inc.php';  // spl_autoload_register() is contained in this file
+    require DOC_ROOT . '/includes/class.dbobject.php'; // DBOBject...
+    require DOC_ROOT . '/includes/class.objects.php';  // and its subclasses
 
     // Fix magic quotes
     if(get_magic_quotes_gpc())
@@ -39,4 +39,5 @@
     // Object for tracking and displaying error messages
     $Error = Error::getError();
 
-	// Auth::createNewUser('username', 'password');
+    // If you need to bootstrap a first user into the database, you can run this line once
+    // Auth::createNewUser('username', 'password');
