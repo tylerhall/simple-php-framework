@@ -155,6 +155,12 @@
 
         public static function createNewUser($username, $password = null)
         {
+	    $db = Database::getDatabase();
+            $row = $db->getRow("SELECT * FROM users WHERE username = " . $db->quote($username));
+
+            if(!empty($row))
+                return false;
+
             if(is_null($password))
                 $password = Auth::generateStrongPassword();
 
