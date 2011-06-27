@@ -4,10 +4,11 @@
         public $id;
         public $tableName;
         public $idColumnName;
-        public $columns = array();
+        public $columns;
         protected $className;
+		protected static $autoColumns;
 
-        protected function __construct($table_name, $columns, $id = null)
+        protected function __construct($table_name, $columns_or_bool_optin, $id = null)
         {
             $this->className    = get_class($this);
             $this->tableName    = $table_name;
@@ -19,11 +20,34 @@
             // the constructor yourself if you have the need.
             $this->idColumnName = 'id';
 
-            foreach($columns as $col)
-                $this->columns[$col] = null;
+			// In production, you should always pass in an array of column names
+			// for performance reasons. But, while testing, the database schema can
+			// often change. So, to make things less tedious, you can optionally
+			// pass in true - and we'll automatically load the column names for you.
+			// This will require an extra db query per class.
+			if($columns_or_bool_optin === true)
+			{
+				if(!isset(self::$autoColumns))
+				{
+					$db = Database::getDatabase();
+					self::$autoColumns = $db->getValues('SHOW COLUMNS FROM `' . $this->tableName . '`');
+				}
 
-            if(!is_null($id))
-                $this->select($id);
+				$columns_or_bool_optin = self::$autoColumns;
+			}
+
+			// At this point $columns_or_bool_optin should *always* be an array,
+			// but just in case...this prevents throwing a warning. You should still
+			// check for this error with isSetup()
+			if(is_array($columns_or_bool_optin))
+			{
+				$this->columns = array();
+	            foreach($columns as $col)
+	                $this->columns[$col] = null;
+
+	            if(!is_null($id))
+	                $this->select($id);
+			}
         }
 
         public function __get($key)
@@ -70,6 +94,11 @@
             return !is_null($this->id);
         }
 
+		public function isSetup()
+		{
+			return is_array($this->columns) && $this->ok();
+		}
+
         public function save()
         {
             if(is_null($this->id))
@@ -105,7 +134,7 @@
 
         public function update()
         {
-            if(is_null($this->id)) return false;
+            if(!$this->ok()) return false;
 
             $db = Database::getDatabase();
 
@@ -141,9 +170,15 @@
             }
         }
 
-        // Grabs a large block of instantiated $class_name objects from the database using only one query.
-        // Note: Once PHP 5.3 becomes widespread, we can use get_called_class() to rewrite glob() and avoid
-        // having to call it via DBObject rather than the actual class we're targeting.
+		// Since PHP 5.3 supports late static binding, we can use ClassName::fetch()
+		// as a convenience wrapper around glob().
+		public static function fetch($sql = null, $extra_columns = array())
+		{
+			$class_name = get_called_class();
+			return DBObject::glob($class_name, $sql, $extra_columns);
+		}
+
+		// Use DBObject::glob() for PHP < 5.3
         public static function glob($class_name, $sql = null, $extra_columns = array())
         {
             $db = Database::getDatabase();
