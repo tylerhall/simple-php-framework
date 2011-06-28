@@ -28,12 +28,19 @@
 			if($columns_or_bool_optin === true)
 			{
 				if(!isset(self::$autoColumns))
+					self::$autoColumns = array();
+				
+				if(!isset(self::$autoColumns[$this->className]))
 				{
+					self::$autoColumns[$this->className] = array();
+
 					$db = Database::getDatabase();
-					self::$autoColumns = $db->getValues('SHOW COLUMNS FROM `' . $this->tableName . '`');
+					$rows = $db->getRows('SHOW COLUMNS FROM `' . $this->tableName . '`');
+					foreach($rows as $row)
+						self::$autoColumns[$this->className][] = $row['Field'];
 				}
 
-				$columns_or_bool_optin = self::$autoColumns;
+				$columns_or_bool_optin = self::$autoColumns[$this->className];
 			}
 
 			// At this point $columns_or_bool_optin should *always* be an array,
@@ -42,7 +49,7 @@
 			if(is_array($columns_or_bool_optin))
 			{
 				$this->columns = array();
-	            foreach($columns as $col)
+	            foreach($columns_or_bool_optin as $col)
 	                $this->columns[$col] = null;
 
 	            if(!is_null($id))
