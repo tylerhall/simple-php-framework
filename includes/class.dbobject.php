@@ -8,7 +8,7 @@
         protected $className;
 		protected static $autoColumns;
 
-        protected function __construct($table_name, $columns_or_bool_optin, $id = null)
+        protected function __construct($table_name, $columns_or_id = null, $id = null)
         {
             $this->className    = get_class($this);
             $this->tableName    = $table_name;
@@ -25,7 +25,7 @@
 			// often change. So, to make things less tedious, you can optionally
 			// pass in true - and we'll automatically load the column names for you.
 			// This will require an extra db query per class.
-			if($columns_or_bool_optin === true)
+			if(!isset($columns_or_id) || !is_array($columns_or_id))
 			{
 				if(!isset(self::$autoColumns))
 					self::$autoColumns = array();
@@ -40,21 +40,18 @@
 						self::$autoColumns[$this->className][] = $row['Field'];
 				}
 
-				$columns_or_bool_optin = self::$autoColumns[$this->className];
+				if(isset($columns_or_id))
+					$id = $columns_or_id;
+
+				$columns_or_id = self::$autoColumns[$this->className];
 			}
 
-			// At this point $columns_or_bool_optin should *always* be an array,
-			// but just in case...this prevents throwing a warning. You should still
-			// check for this error with isSetup()
-			if(is_array($columns_or_bool_optin))
-			{
-				$this->columns = array();
-	            foreach($columns_or_bool_optin as $col)
-	                $this->columns[$col] = null;
+			$this->columns = array();
+            foreach($columns_or_id as $col)
+                $this->columns[$col] = null;
 
-	            if(!is_null($id))
-	                $this->select($id);
-			}
+            if(!is_null($id))
+                $this->select($id);
         }
 
         public function __get($key)
