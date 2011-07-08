@@ -37,7 +37,10 @@
 					$db = Database::getDatabase();
 					$rows = $db->getRows('SHOW COLUMNS FROM `' . $this->tableName . '`');
 					foreach($rows as $row)
-						self::$autoColumns[$this->className][] = $row['Field'];
+					{
+						if(strtolower($row['Field']) != strtolower($this->idColumnName))
+							self::$autoColumns[$this->className][] = $row['Field'];
+					}
 				}
 
 				if(isset($columns_or_id))
