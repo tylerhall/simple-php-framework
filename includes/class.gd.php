@@ -98,7 +98,7 @@
 
         // Return image data as a string.
         // Is there a way to do this without using output buffering?
-        public function __tostring($type = 'jpg', $quality = 75)
+        public function toString($type = 'jpg', $quality = 75)
         {
             ob_start();
 
