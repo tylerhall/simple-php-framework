@@ -89,7 +89,7 @@
         // From http://us3.php.net/get_browser comments
         public static function browserInfo($a_browser = false, $a_version = false, $name = false)
         {
-            $browser_list = 'msie firefox konqueror safari netscape navigator opera mosaic lynx amaya omniweb chrome avant camino flock seamonkey aol mozilla gecko';
+            $browser_list = 'msie firefox konqueror chrome safari netscape navigator opera mosaic lynx amaya omniweb avant camino flock seamonkey aol mozilla gecko';
             $user_browser = strtolower(getenv('HTTP_USER_AGENT'));
             $this_version = $this_browser = '';
 
