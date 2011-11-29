@@ -121,7 +121,7 @@
             {
                 foreach($args_to_prepare as $name => $val)
                 {
-                    $val = $this->quote($val);
+					if(!is_int($val)) $val = $this->quote($val);
                     $sql = str_replace(":$name:", $val, $sql, $count);
                     if($exception_on_missing_args && (0 == $count))
                         throw new Exception(":$name: was not found in prepared SQL query.");
