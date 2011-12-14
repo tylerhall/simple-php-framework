@@ -78,6 +78,16 @@
             return $value; // Seriously.
         }
 
+		public function __isset($key)
+		{
+			return array_key_exists($key, $this->columns);
+		}
+
+		public function __unset($key)
+		{
+			unset($this->columns[$key]);
+		}
+
         public function select($id, $column = null)
         {
             $db = Database::getDatabase();
