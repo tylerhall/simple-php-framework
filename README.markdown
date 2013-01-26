@@ -2,7 +2,7 @@
 
 ### Project History ###
 
-This framework is the foundation that all of my websites are built with. I've been using this code base (or some form of it) for five years across hundreds of different projects - both personal and professional. It's served me well for the smallest of projects up to sites receiving millions of visitors per month. Less framework and more foundation, it provides a quick starting point and does a lot of the grunt work &mdash; user authentication, database calls, RSS feeds, etc. It's exactly enough to get your project bootstrapped and moving forward quickly.
+This framework is the foundation that all of my websites are built with. I've been using this code base (or some form of it) for seven years across hundreds of different projects - both personal and professional. It's served me well for the smallest of projects up to sites receiving millions of visitors per month. Less framework and more foundation, it provides a quick starting point and does a lot of the grunt work &mdash; user authentication, database calls, RSS feeds, etc. It's exactly enough to get your project bootstrapped and moving forward quickly.
 
 This framework wasn't built overnight or even on purpose. It's really a development pattern and collection of classes that have evolved naturally over the last five years. I've tried to walk a fine line and not add unnecessary features that most people won't use. I've done my best to keep it as minimal as possible yet still allow plenty of flexibility.
 
