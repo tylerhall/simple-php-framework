@@ -28,8 +28,7 @@
         public static function write($id, $data)
         {
             $db = Database::getDatabase();
-            $db->query('DELETE FROM `sessions` WHERE `id` = :id:', array('id' => $id));
-            $db->query('INSERT INTO `sessions` (`id`, `data`, `updated_on`) VALUES (:id:, :data:, :updated_on:)', array('id' => $id, 'data' => $data, 'updated_on' => time()));
+            $db->query('INSERT INTO `sessions` (`id`, `data`, `updated_on`) VALUES (:id:, :data:, :updated_on:) ON DUPLICATE KEY UPDATE `data` = :data:, `updated_on` = :updated_on:', array('id' => $id, 'data' => $data, 'updated_on' => time()));
             return ($db->affectedRows() == 1);
         }
 
