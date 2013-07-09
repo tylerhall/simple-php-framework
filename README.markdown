@@ -22,3 +22,7 @@ and licensed under the [MIT Open Source License](http://www.opensource.org/licen
 As is the tradition with most open source software, the code is self-documenting &mdash; which is a nice way of saying I'm too lazy to write any formal documentation myself. That said, I'm always happy to answer questions about the code. You're also welcome to join our [discussion group](http://groups.google.com/group/simple-php-framework). There's not much activity, but if you ask a question you'll typically get an answer back quickly.
 
 If you'd like to see a full website built using the framework, take a look at [Shine](https://github.com/tylerhall/Shine). It's a good, (mostly) clean example of how to use the framework.
+
+### Misc ###
+
+This framework has been around for a while, as such, the database layer uses the old PHP MySQL extenion. It still works just fine, but it's not the recommended PHP way any longer. Here's a [MySQL PDO](https://github.com/maxfierke/arcanecms/blob/master/includes/class.database.php) replacement written by Max Fierke.
