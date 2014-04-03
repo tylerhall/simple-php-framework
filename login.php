@@ -13,7 +13,7 @@
                 redirect(WEB_ROOT);
         }
         else
-            $Error->add('username', "We're sorry, you have entered an incorrect username and password. Please try again.");
+            $Error->add('username', LOGIN_ERROR);
     }
 
     // Clean the submitted username before redisplaying it.
@@ -25,15 +25,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Sample Login Page</title>
+    <title><?PHP echo TITLE_PAGE; ?></title>
     <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/reset-fonts-grids/reset-fonts-grids.css">
     <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/base/base-min.css">
 </head>
 <body>
     <form action="<?PHP echo $_SERVER['PHP_SELF']; ?>" method="post">
         <?PHP echo $Error; ?>
-        <p><label for="username">Username:</label> <input type="text" name="username" value="<?PHP echo $username;?>" id="username" /></p>
-        <p><label for="password">Password:</label> <input type="password" name="password" value="" id="password" /></p>
+        <p><label for="username"><?PHP echo USER_NAME_LABEL; ?></label> <input type="text" name="username" value="<?PHP echo $username;?>" id="username" /></p>
+        <p><label for="password"><?PHP echo PASSWORD_LABEL; ?></label> <input type="password" name="password" value="" id="password" /></p>
         <p><input type="submit" name="btnlogin" value="Login" id="btnlogin" /></p>
         <input type="hidden" name="r" value="<?PHP echo htmlspecialchars(@$_REQUEST['r']); ?>" id="r">
     </form>
