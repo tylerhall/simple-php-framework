@@ -25,4 +25,4 @@ If you'd like to see a full website built using the framework, take a look at [S
 
 ### Misc ###
 
-This framework has been around for a while, as such, the database layer uses the old PHP MySQL extenion. It still works just fine, but it's not the recommended PHP way any longer. Here's a [MySQL PDO](https://github.com/maxfierke/arcanecms/blob/master/includes/class.database.php) replacement written by Max Fierke.
+If you don't want to use the MySQLi database class, here's a [MySQL PDO](https://github.com/maxfierke/arcanecms/blob/master/includes/class.database.php) replacement written by Max Fierke.
