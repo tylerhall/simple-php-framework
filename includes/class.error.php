@@ -169,7 +169,7 @@
         // Is an email address valid?
         public function email($val, $id = 'email')
         {
-            if(!preg_match("/^([_a-z0-9+-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/i", $val))
+            if(!preg_match("/^([_a-z0-9+-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,24})$/i", $val))
             {
                 $this->add($id, 'The email address you entered is not valid.');
                 return false;
