@@ -668,10 +668,12 @@
     // Accepts any number of arguments and returns the first non-empty one
     function pick()
     {
-        foreach(func_get_args() as $arg)
-            if(!empty($arg))
+        foreach(func_get_args() as $arg) {
+            if(!empty($arg)) {
                 return $arg;
-        return '';
+			}
+		}
+        return false;
     }
 
     // Secure a PHP script using basic HTTP authentication
