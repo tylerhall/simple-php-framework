@@ -235,6 +235,14 @@
             if(!in_array($key, array_keys($this->columns)))
                 $this->columns[$key] = $val;
         }
+
+
+		public function dictionary()
+		{
+			$arr = $this->columns;
+			$arr[$this->idColumnName] = $this->id;
+			return $arr;
+		}
     }
 
     class TaggableDBObject extends DBObject
