@@ -44,8 +44,8 @@
             $db = Database::getDatabase();
             $db->query("REPLACE INTO url_cache (url, dt_refreshed, dt_expires, data) VALUES (:url, :dt_refreshed, :dt_expires, :data)",
                        array('url'          => $url,
-                             'dt_refreshed' => dater(),
-                             'dt_expires'   => dater(time() + $expires_in),
+                             'dt_refreshed' => dater_utc(),
+                             'dt_expires'   => dater_utc(time() + $expires_in),
                              'data'         => $str));
             return $str;
         }
