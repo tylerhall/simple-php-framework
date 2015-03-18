@@ -3,7 +3,7 @@
     define('SPF', true);
 
     // https://twitter.com/#!/marcoarment/status/59089853433921537
-    date_default_timezone_set('America/Los_Angeles');
+    date_default_timezone_set('UTC');
 
     // Determine our absolute document root
     define('DOC_ROOT', realpath(dirname(__FILE__) . '/../'));
