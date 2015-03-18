@@ -155,7 +155,7 @@
 
         public static function createNewUser($username, $password = null)
         {
-	    $db = Database::getDatabase();
+			$db = Database::getDatabase();
 
             $user_exists = $db->getValue("SELECT COUNT(*) FROM users WHERE username = " . $db->quote($username));
             if($user_exists > 0)
