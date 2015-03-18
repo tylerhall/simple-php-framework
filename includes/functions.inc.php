@@ -212,8 +212,48 @@
         return strtotime($str);
     }
 
-    // Converts a date/timestamp into the specified format
-	function dater($date = null, $format = null)
+	function dater_local($date = null, $format = null)
+	{
+		global $Auth;
+
+        if(is_null($format))
+            $format = 'Y-m-d H:i:s';
+
+        if(is_null($date))
+            $date = time();
+
+		if(is_int($date))
+		{
+			$ts = $date;
+		}
+		else if(is_float($date))
+		{
+			$ts = $date;
+		}
+		else if(is_string($date))
+		{
+	        if(ctype_digit($date) === true)
+			{
+	            $ts = intval($date);
+			}
+			else if((preg_match('/[^0-9.]/', $date) == 0) && (substr_count($date, '.') <= 1))
+			{
+				$ts = floatval($date);
+			}
+			else
+			{
+				$ts = strtotime($date);
+			}
+		}
+
+		$dt = new DateTime();
+		$dt->setTimestamp($ts);
+		$dt->setTimeZone(new DateTimeZone($Auth->user->timezone));
+		return $dt->format($format);
+	}
+
+    // Converts a date/timestamp into the specified format in UTC
+	function dater_utc($date = null, $format = null)
     {
         if(is_null($format))
             $format = 'Y-m-d H:i:s';
@@ -222,20 +262,33 @@
             $date = time();
 
 		if(is_int($date))
-			return date($format, $date);
-		if(is_float($date))
-			return date($format, $date);
-		if(is_string($date)) {
-	        if(ctype_digit($date) === true)
-	            return date($format, $date);
-			if((preg_match('/[^0-9.]/', $date) == 0) && (substr_count($date, '.') <= 1))
-				return date($format, floatval($date));
-			return date($format, strtotime($date));
+		{
+			$ts = $date;
 		}
-		
-		// If $date is anything else, you're doing something wrong,
-		// so just let PHP error out however it wants.
-		return date($format, $date);
+		else if(is_float($date))
+		{
+			$ts = $date;
+		}
+		else if(is_string($date))
+		{
+	        if(ctype_digit($date) === true)
+			{
+	            $ts = intval($date);
+			}
+			else if((preg_match('/[^0-9.]/', $date) == 0) && (substr_count($date, '.') <= 1))
+			{
+				$ts = floatval($date);
+			}
+			else
+			{
+				$ts = strtotime($date);
+			}
+		}
+
+		$dt = new DateTime();
+		$dt->setTimestamp($ts);
+		$dt->setTimeZone(new DateTimeZone('UTC'));
+		return $dt->format($format);
     }
 
     // Formats a phone number as (xxx) xxx-xxxx or xxx-xxxx depending on the length.
@@ -247,6 +300,8 @@
             return preg_replace("/([0-9]{3})([0-9]{4})/", "$1-$2", $phone);
         elseif(strlen($phone) == 10)
             return preg_replace("/([0-9]{3})([0-9]{3})([0-9]{4})/", "($1) $2-$3", $phone);
+        elseif(strlen($phone) == 11)
+            return preg_replace("/1([0-9]{3})([0-9]{3})([0-9]{4})/", "($1) $2-$3", $phone);
         else
             return $phone;
     }
