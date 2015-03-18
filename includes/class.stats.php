@@ -22,7 +22,7 @@
         {
             $db = Database::getDatabase();
 
-            $dt               = dater();
+            $dt               = dater_utc();
             $referer          = getenv('HTTP_REFERER');
             $referer_is_local = self::refererIsLocal($referer);
             $url              = full_url();
