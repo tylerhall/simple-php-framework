@@ -493,21 +493,45 @@
         return round($val, $round) . array_shift($unit) . 'B';
     }
 
-    // Tests for a valid email address and optionally tests for valid MX records, too.
-    function valid_email($email, $test_mx = false)
+    // A generous, real-world test for email address validity
+    function valid_email($email)
     {
-        if(preg_match("/^([_a-z0-9+-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,4})$/i", $email))
-        {
-            if($test_mx)
-            {
-                list( , $domain) = explode("@", $email);
-                return getmxrr($domain, $mxrecords);
-            }
-            else
-                return true;
-        }
-        else
-            return false;
+	    // Pick apart the user and domain
+		$components = explode('@', $email);
+
+	    // We must have exactly one of each
+		if(count($components) != 2) {
+			return false;
+		}
+
+		$first_item = $components[0];
+		$second_item = $components[1];
+		
+	    // Neither can be 0 length
+		if((strlen($first_item) == 0) || (strlen($second_item) == 0)) {
+			return false;
+		}
+		
+	    // Pick apart the domain components
+		$components = explode('.', $second_item);
+
+	    // We must have at least two (a domain and a TLD (well, technically, I'm sure a TLD isn't required, but no one has that in the real world))
+		if(count($components) < 2) {
+			return false;
+		}
+		
+	    // Pick out the TLD
+		$tld = $components[count($components) - 1];
+
+	    // Re-combine all but the last component into a single domain string
+		$domain = implode('.', array_slice($components, 0, count($components) - 1));
+		
+		// Neither can be 0 length
+	    if((strlen($domain) == 0) || (strlen($tld) == 0)) {
+			return false;
+		}
+		
+		return true;
     }
 
     // Grabs the contents of a remote URL. Can perform basic authentication if un/pw are provided.
