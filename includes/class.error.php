@@ -193,7 +193,7 @@
         // Is a birth date at least 18 years old?
         public function adult($val, $id)
         {
-            if( dater($val) > ( (date('Y') - 18) . date('-m-d H:i:s') ) )
+            if( dater_utc($val) > ( (date('Y') - 18) . date('-m-d H:i:s') ) )
             {
                 $this->add($id, 'You must be at least 18 years old.');
                 return false;
