@@ -7,12 +7,15 @@
 
     // Determine our absolute document root
     define('DOC_ROOT', realpath(dirname(__FILE__) . '/../'));
-
+    
+    // Global include languages
+    require DOC_ROOT . '/lang/lang.php'; // basic language support 
+    
     // Global include files
     require DOC_ROOT . '/includes/functions.inc.php';  // spl_autoload_register() is contained in this file
     require DOC_ROOT . '/includes/class.dbobject.php'; // DBOBject...
     require DOC_ROOT . '/includes/class.objects.php';  // and its subclasses
-
+    
     // Fix magic quotes
     if(get_magic_quotes_gpc())
     {
