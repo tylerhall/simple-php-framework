@@ -135,6 +135,8 @@
             foreach($this->columns as $k => $v)
                 if(!is_null($v))
                     $data[$k] = $db->quote($v);
+				else
+					$data[$k] = 'NULL';
 
             $columns = '`' . implode('`, `', array_keys($data)) . '`';
             $values = implode(',', $data);
@@ -159,7 +161,12 @@
 
             $sql = "UPDATE {$this->tableName} SET ";
             foreach($this->columns as $k => $v)
+				if(!is_null($v) && !empty($v)) {
                 $sql .= "`$k`=" . $db->quote($v) . ',';
+				} else {
+					$sql .= "`$k` = NULL,";
+				}
+			}
             $sql[strlen($sql) - 1] = ' ';
 
             $sql .= "WHERE `{$this->idColumnName}` = " . $db->quote($this->id);

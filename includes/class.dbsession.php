@@ -3,8 +3,13 @@
     {
         public static function register()
         {
-            ini_set('session.save_handler', 'user');
-            session_set_save_handler(array('DBSession', 'open'), array('DBSession', 'close'), array('DBSession', 'read'), array('DBSession', 'write'), array('DBSession', 'destroy'), array('DBSession', 'gc'));
+			$handler = new DBSession();
+            session_set_save_handler(array($handler, 'open'), array($handler, 'close'), array($handler, 'read'), array($handler, 'write'), array($handler, 'destroy'), array($handler, 'gc'));
+
+			// the following prevents unexpected effects when using objects as save handlers
+			register_shutdown_function('session_write_close');
+			
+			session_start();
         }
 
         public static function open()
@@ -29,14 +34,14 @@
         {
             $db = Database::getDatabase();
             $db->query('INSERT INTO `sessions` (`id`, `data`, `updated_on`) VALUES (:id:, :data:, :updated_on:) ON DUPLICATE KEY UPDATE `data` = :data:, `updated_on` = :updated_on:', array('id' => $id, 'data' => $data, 'updated_on' => time()));
-            return ($db->affectedRows() == 1);
+			return ($db->affectedRows() > 0);
         }
 
         public static function destroy($id)
         {
             $db = Database::getDatabase();
             $db->query('DELETE FROM `sessions` WHERE `id` = :id:', array('id' => $id));
-            return ($db->affectedRows() == 1);
+            return ($db->affectedRows() > 0);
         }
 
         public static function gc($max)

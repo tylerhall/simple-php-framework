@@ -169,6 +169,8 @@
             $u->username = $username;
             $u->nid = self::newNid();
             $u->password = self::hashedPassword($password);
+			$u->api_key = User::randomAPIKey();
+			$u->level = 'user';
             $u->insert();
             return $u;
         }
