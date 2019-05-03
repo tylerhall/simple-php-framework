@@ -7,7 +7,7 @@
 
         public function __construct()
         {
-            $this->_id = 'pp' . md5($_SERVER['PHP_SELF']);
+            $this->_id = 'pp' . sha1($_SERVER['PHP_SELF']);
 
             if(isset($_SESSION[$this->_id]))
                 $this->_data = unserialize($_SESSION[$this->_id]);

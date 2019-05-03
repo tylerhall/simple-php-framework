@@ -1,4 +1,5 @@
 <?PHP
+
     // The Config class provides a single object to store your application's settings.
     // Define your settings as public members. (We've already setup the standard options
     // required for the Database and Auth classes.) Then, assign values to those settings
@@ -12,25 +13,24 @@
         private static $me;
 
         // Add your server hostnames to the appropriate arrays. ($_SERVER['HTTP_HOST'])
-        // Each array item should be a regular expression. This gives you the option to detect a whole range
-        // of server names if needed. Otherwise, you can simply detect a single server like '/^servername\.com$/'
-        private $productionServers = array();
-        private $stagingServers    = array();
-        private $localServers      = array();
+        private $productionServers = array('domain.com');
+        private $stagingServers    = array('staging.domain.com');
+        private $localServers      = array('localhost');
 
         // Standard Config Options...
 
         // ...For Auth Class
-        public $authDomain;         // Domain to set for the cookie
+        public $authDomain = '';    // Domain to set for the cookie
         public $authSalt;           // Can be any random string of characters
+        public $useHashedPasswords; // Store hashed passwords in database? (versus plain-text)
+		public $useTwoStepAuth;
 
         // ...For Database Class
-        public $dbHost;
-        public $dbName;
-        public $dbUsername;
-        public $dbPassword;
-
-        public $dbDieOnError;
+        public $dbHost;       // Database server
+        public $dbName;       // Database name
+        public $dbUsername;   // Database username
+        public $dbPassword;   // Database password
+        public $dbDieOnError; // What do do on a database error (see class.database.php for details)
 
         // Add your config options here...
         public $useDBSessions; // Set to true to store sessions in the database
@@ -58,8 +58,9 @@
         // Get Singleton object
         public static function getConfig()
         {
-            if(is_null(self::$me))
+            if(is_null(self::$me)) {
                 self::$me = new Config();
+			}
             return self::$me;
         }
 
@@ -77,15 +78,16 @@
             $this->useDBSessions = true;
 
             // Settings for the Auth class
-            $this->authDomain = $_SERVER['HTTP_HOST'];
-            $this->authSalt   = '';
+            $this->authDomain         = $_SERVER['HTTP_HOST'];
+            $this->useHashedPasswords = true;
+            $this->authSalt           = 'Pick any random string of characters';
         }
 
         // Add code/variables to be run only on production servers
         private function production()
         {
-            ini_set('display_errors', '1');
-            ini_set('error_reporting', E_ALL);
+			ini_set('display_errors', '0');
+            ini_set('error_reporting', E_NONE);
 
             define('WEB_ROOT', '/');
 
@@ -93,7 +95,9 @@
             $this->dbName       = '';
             $this->dbUsername   = '';
             $this->dbPassword   = '';
-            $this->dbDieOnError = true;
+            $this->dbDieOnError = false;
+
+			$this->useTwoStepAuth = false;
         }
 
         // Add code/variables to be run only on staging servers
@@ -108,7 +112,7 @@
             $this->dbName       = '';
             $this->dbUsername   = '';
             $this->dbPassword   = '';
-            $this->dbDieOnError = true;
+            $this->dbDieOnError = false;
         }
 
         // Add code/variables to be run only on local (testing) servers
@@ -117,9 +121,9 @@
             ini_set('display_errors', '1');
             ini_set('error_reporting', E_ALL);
 
-            define('WEB_ROOT', '');
-
-            $this->dbHost       = '';
+            define('WEB_ROOT', '/');
+            
+		    $this->dbHost       = '';
             $this->dbName       = '';
             $this->dbUsername   = '';
             $this->dbPassword   = '';
@@ -143,21 +147,15 @@
 
         public function whereAmI()
         {
-            for($i = 0; $i < count($this->productionServers); $i++)
-                if(preg_match($this->productionServers[$i], getenv('HTTP_HOST')) === 1)
-                    return 'production';
-
-            for($i = 0; $i < count($this->stagingServers); $i++)
-                if(preg_match($this->stagingServers[$i], getenv('HTTP_HOST')) === 1)
-                    return 'staging';
-
-            for($i = 0; $i < count($this->localServers); $i++)
-                if(preg_match($this->localServers[$i], getenv('HTTP_HOST')) === 1)
-                    return 'local';
-
-            if(isset($_ENV['SHELL']))
+            if(in_array($_SERVER['HTTP_HOST'], $this->productionServers))
+                return 'production';
+            elseif(in_array($_SERVER['HTTP_HOST'], $this->stagingServers))
+                return 'staging';
+            elseif(in_array($_SERVER['HTTP_HOST'], $this->localServers))
+                return 'local';
+            elseif(isset($_ENV['SHELL']))
                 return 'shell';
-
-            return false;
+            else
+                return false;
         }
     }

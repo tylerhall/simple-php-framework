@@ -1,40 +1,29 @@
 <?PHP
-	function timezone_list()
+	function twitterfy($str)
 	{
-		$zones_array = array();
-		$timestamp = time();
-		foreach(timezone_identifiers_list() as $key => $zone)
-		{
-			date_default_timezone_set($zone);
-			$zones_array[$key]['zone'] = $zone;
-			$zones_array[$key]['diff_from_GMT'] = 'UTC/GMT ' . date('P', $timestamp);
-		}
-		date_default_timezone_set('UTC');
-		return $zones_array;
+	    // Via http://www.snipe.net/2009/09/php-twitter-clickable-links/
+	    $str = preg_replace("#(^|[\n ])([\w]+?://[\w]+[^ \"\n\r\t< ]*)#", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $str);
+	    $str = preg_replace("#(^|[\n ])((www|ftp)\.[^ \"\t\n\r< ]*)#", "\\1<a href=\"http://\\2\" target=\"_blank\">\\2</a>", $str);
+	    $str = preg_replace("/@(\w+)/", "<a href=\"http://www.twitter.com/\\1\" target=\"_blank\">@\\1</a>", $str);
+	    $str = preg_replace("/#(\w+)/", "<a href=\"http://search.twitter.com/search?q=\\1\" target=\"_blank\">#\\1</a>", $str);
+	    return $str;
 	}
-	
-    function set_option($key, $val)
-    {
-        $db = Database::getDatabase();
-        $db->query('REPLACE INTO options (`key`, `value`) VALUES (:key:, :value:)', array('key' => $key, 'value' => $val));
-    }
 
-    function get_option($key, $default = null)
-    {
-        $db = Database::getDatabase();
-        $db->query('SELECT `value` FROM options WHERE `key` = :key:', array('key' => $key));
-        if($db->hasRows())
-            return $db->getValue();
-        else
-            return $default;
-    }
+	function set_option($key, $val)
+	{
+		$db = Database::getDatabase();
+		$db->query('REPLACE INTO options (`key`, `value`) VALUES (:key, :value)', array('key' => $key, 'value' => $val));
+	}
 
-    function delete_option($key)
-    {
-        $db = Database::getDatabase();
-        $db->query('DELETE FROM options WHERE `key` = :key:', array('key' => $key));
-        return $db->affectedRows();
-    }
+	function get_option($key, $default = null)
+	{
+		$db = Database::getDatabase();
+		$db->query('SELECT `value` FROM options WHERE `key` = :key', array('key' => $key));
+		if($db->hasRows())
+			return $db->getValue();
+		else
+			return $default;
+	}
 
     function printr($var)
     {
@@ -74,18 +63,18 @@
         return $protocol . "://" . $_SERVER['HTTP_HOST'] . $port . $_SERVER['REQUEST_URI'];
     }
 
-    // Returns an English representation of a date
+    // Returns an English representation of a past date within the last month
     // Graciously stolen from http://ejohn.org/files/pretty.js
     function time2str($ts)
     {
-        if(!ctype_digit($ts))
+        if(!ctype_digit($ts)) {
             $ts = strtotime($ts);
+		}
 
         $diff = time() - $ts;
-        if($diff == 0)
+        if($diff == 0) {
             return 'now';
-        elseif($diff > 0)
-        {
+        } else if($diff > 0) {
             $day_diff = floor($diff / 86400);
             if($day_diff == 0)
             {
@@ -101,9 +90,7 @@
             if($day_diff < 60) return 'last month';
             $ret = date('F Y', $ts);
             return ($ret == 'December 1969') ? '' : $ret;
-        }
-        else
-        {
+        } else {
             $diff = abs($diff);
             $day_diff = floor($diff / 86400);
             if($day_diff == 0)
@@ -160,8 +147,9 @@
         $ret = array();
         $arr = explode($sep, trim($_SERVER['REQUEST_URI'], $sep));
         if($grab_first) $ret[0] = array_shift($arr);
-        while(count($arr) > 0)
+        while(count($arr) > 0) {
             $ret[array_shift($arr)] = array_shift($arr);
+		}
         return (count($ret) > 0) ? $ret : false;
     }
 
@@ -195,100 +183,33 @@
     // More robust strict date checking for string representations
     function chkdate($str)
     {
-        // Requires PHP 5.2
-        if(function_exists('date_parse'))
+        $info = date_parse($str);
+        if($info !== false && $info['error_count'] == 0)
         {
-            $info = date_parse($str);
-            if($info !== false && $info['error_count'] == 0)
-            {
-                if(checkdate($info['month'], $info['day'], $info['year']))
-                    return true;
-            }
-
-            return false;
+            if(checkdate($info['month'], $info['day'], $info['year'])) {
+                return true;
+			}
         }
 
-        // Else, for PHP < 5.2
-        return strtotime($str);
+        return false;
     }
 
-	function dater_local($date = null, $format = null)
-	{
-		global $Auth;
-
-        if(is_null($format))
-            $format = 'Y-m-d H:i:s';
-
-        if(is_null($date))
-            $date = time();
-
-		if(is_int($date))
-		{
-			$ts = $date;
-		}
-		else if(is_float($date))
-		{
-			$ts = $date;
-		}
-		else if(is_string($date))
-		{
-	        if(ctype_digit($date) === true)
-			{
-	            $ts = intval($date);
-			}
-			else if((preg_match('/[^0-9.]/', $date) == 0) && (substr_count($date, '.') <= 1))
-			{
-				$ts = floatval($date);
-			}
-			else
-			{
-				$ts = strtotime($date);
-			}
-		}
-
-		$dt = new DateTime();
-		$dt->setTimestamp($ts);
-		$dt->setTimeZone(new DateTimeZone($Auth->user->timezone));
-		return $dt->format($format);
-	}
-
-    // Converts a date/timestamp into the specified format in UTC
-	function dater_utc($date = null, $format = null)
+    // Converts a date/timestamp into the specified format
+    function dater($date = null, $format = null)
     {
-        if(is_null($format))
+        if(is_null($format)) {
             $format = 'Y-m-d H:i:s';
+		}
 
-        if(is_null($date))
+        if(is_null($date)) {
             $date = time();
-
-		if(is_int($date))
-		{
-			$ts = $date;
-		}
-		else if(is_float($date))
-		{
-			$ts = $date;
-		}
-		else if(is_string($date))
-		{
-	        if(ctype_digit($date) === true)
-			{
-	            $ts = intval($date);
-			}
-			else if((preg_match('/[^0-9.]/', $date) == 0) && (substr_count($date, '.') <= 1))
-			{
-				$ts = floatval($date);
-			}
-			else
-			{
-				$ts = strtotime($date);
-			}
 		}
 
-		$dt = new DateTime();
-		$dt->setTimestamp($ts);
-		$dt->setTimeZone(new DateTimeZone('UTC'));
-		return $dt->format($format);
+        // if $date contains only numbers, treat it as a timestamp
+        if(ctype_digit($date) === true)
+            return date($format, $date);
+        else
+            return date($format, strtotime($date));
     }
 
     // Formats a phone number as (xxx) xxx-xxxx or xxx-xxxx depending on the length.
@@ -300,8 +221,6 @@
             return preg_replace("/([0-9]{3})([0-9]{4})/", "$1-$2", $phone);
         elseif(strlen($phone) == 10)
             return preg_replace("/([0-9]{3})([0-9]{3})([0-9]{4})/", "($1) $2-$3", $phone);
-        elseif(strlen($phone) == 11)
-            return preg_replace("/1([0-9]{3})([0-9]{3})([0-9]{4})/", "($1) $2-$3", $phone);
         else
             return $phone;
     }
@@ -407,24 +326,26 @@
     }
 
     // Returns an array of the values of the specified column from a multi-dimensional array
-    function gimme($arr, $key = null)
+    function gimme($arr, $key = null, $mod = 1)
     {
         if(is_null($key))
             $key = current(array_keys($arr));
 
+		if(is_numeric($key)) {
+			$keys = array_keys($arr[0]);
+			$key = $keys[$key];
+		}
+
         $out = array();
-        foreach($arr as $a)
-            $out[] = $a[$key];
+		$i = 0;
+        foreach($arr as $k => $a)
+		{
+			if($i % $mod == 0)
+	            $out[] = $a[$key];
+			$i++;
+		}
 
         return $out;
-    }
-
-    // Fixes MAGIC_QUOTES
-    function fix_slashes($arr = '')
-    {
-        if(is_null($arr) || $arr == '') return null;
-        if(!get_magic_quotes_gpc()) return $arr;
-        return is_array($arr) ? array_map('fix_slashes', $arr) : stripslashes($arr);
     }
 
     // Returns the first $num words of $str
@@ -472,15 +393,6 @@
         return isset($matches[1]) ? $matches[1] : false;
     }
 
-	// Inserts a string within another string at a specified location
-	function str_insert($needle, $haystack, $location)
-	{
-	   $front = substr($haystack, 0, $location);
-	   $back  = substr($haystack, $location);
-
-	   return $front . $needle . $back;
-	}
-
     // Outputs a filesize in human readable format.
     function bytes2str($val, $round = 0)
     {
@@ -493,45 +405,22 @@
         return round($val, $round) . array_shift($unit) . 'B';
     }
 
-    // A generous, real-world test for email address validity
-    function valid_email($email)
+    // Tests for a valid email address and optionally tests for valid MX records, too.
+    function valid_email($email, $test_mx = false)
     {
-	    // Pick apart the user and domain
-		$components = explode('@', $email);
-
-	    // We must have exactly one of each
-		if(count($components) != 2) {
-			return false;
+		list($user, $domain) = explode('@', $email);
+		if(strlen($user) > 0 && strlen($domain) > 0) {
+			$parts = explode('.', $domain);
+			if($parts >= 2) {
+	            if($test_mx) {
+	                return getmxrr($domain, $mxrecords);
+	            } else {
+	                return true;
+				}
+			}
 		}
 
-		$first_item = $components[0];
-		$second_item = $components[1];
-		
-	    // Neither can be 0 length
-		if((strlen($first_item) == 0) || (strlen($second_item) == 0)) {
-			return false;
-		}
-		
-	    // Pick apart the domain components
-		$components = explode('.', $second_item);
-
-	    // We must have at least two (a domain and a TLD (well, technically, I'm sure a TLD isn't required, but no one has that in the real world))
-		if(count($components) < 2) {
-			return false;
-		}
-		
-	    // Pick out the TLD
-		$tld = $components[count($components) - 1];
-
-	    // Re-combine all but the last component into a single domain string
-		$domain = implode('.', array_slice($components, 0, count($components) - 1));
-		
-		// Neither can be 0 length
-	    if((strlen($domain) == 0) || (strlen($tld) == 0)) {
-			return false;
-		}
-		
-		return true;
+        return false;
     }
 
     // Grabs the contents of a remote URL. Can perform basic authentication if un/pw are provided.
@@ -540,11 +429,11 @@
         if(function_exists('curl_init'))
         {
             $ch = curl_init();
-            if(!is_null($username) && !is_null($password))
+            if(!is_null($username) && !is_null($password)) {
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: Basic ' .  base64_encode("$username:$password")));
+			}
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
             $html = curl_exec($ch);
             curl_close($ch);
             return $html;
@@ -611,31 +500,6 @@
         }
     }
 
-    // Returns the lat, long of an address via Yahoo!'s geocoding service.
-    // You'll need an App ID, which is available from here:
-    // http://developer.yahoo.com/maps/rest/V1/geocode.html
-    // Note: needs to be updated to use PlaceFinder instead.
-    function geocode($location, $appid)
-    {
-        $location = urlencode($location);
-        $appid    = urlencode($appid);
-        $data     = file_get_contents("http://local.yahooapis.com/MapsService/V1/geocode?output=php&appid=$appid&location=$location");
-        $data     = unserialize($data);
-
-        if($data === false) return false;
-
-        $data = $data['ResultSet']['Result'];
-
-        return array('lat' => $data['Latitude'], 'lng' => $data['Longitude']);
-    }
-
-    // A stub for Yahoo!'s reverse geocoding service
-    // http://developer.yahoo.com/geo/placefinder/
-    function reverse_geocode($lat, $lng)
-    {
-
-    }
-
     // Quick and dirty wrapper for curl scraping.
     function curl($url, $referer = null, $post = null)
     {
@@ -648,13 +512,15 @@
         curl_setopt($ch, CURLOPT_COOKIEFILE, $tmpfile);
         curl_setopt($ch, CURLOPT_COOKIEJAR, $tmpfile);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-US; rv:1.8.1) Gecko/20061024 BonEcho/2.0");
+        curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1 Safari/605.1.15");
         // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         // curl_setopt($ch, CURLOPT_VERBOSE, 1);
 
-        if($referer) curl_setopt($ch, CURLOPT_REFERER, $referer);
-        if(!is_null($post))
-        {
+        if(!is_null($referer)) {
+			curl_setopt($ch, CURLOPT_REFERER, $referer);
+		}
+
+        if(!is_null($post)) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
         }
@@ -673,7 +539,7 @@
                 return $arg;
 			}
 		}
-        return false;
+        return '';
     }
 
     // Secure a PHP script using basic HTTP authentication
@@ -694,15 +560,14 @@
     }
 
     // Class Autloader
-    spl_autoload_register('spf_autoload');
-
-    function spf_autoload($class_name)
-    {
-        $filename = DOC_ROOT . '/includes/class.' . strtolower($class_name) . '.php';
-        if(file_exists($filename)) {
-            require $filename;
+	function spf_autoload($class_name)
+	{
+		$fn = DOC_ROOT . '/includes/class.' . strtolower($class_name) . '.php';
+		if(file_exists($fn))
+		{
+			return include $fn;
 		}
-    }
+	}
 
     // Returns a file's mimetype based on its extension
     function mime_type($filename, $default = 'application/octet-stream')

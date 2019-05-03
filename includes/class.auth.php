@@ -1,7 +1,7 @@
 <?PHP
     class Auth
     {
-        const SALT = 'insert some random text here';
+        const SALT = 'some random text goes here';
 
         private static $me;
 
@@ -9,7 +9,7 @@
         public $username;
         public $user;
         public $expiryDate;
-        public $loginUrl = WEB_ROOT; // Where to direct users to login
+        public $loginUrl = '/login.php'; // Where to direct users to login
 
         private $nid;
         private $loggedIn;
@@ -41,7 +41,28 @@
             $this->loggedIn = $this->attemptCookieLogin();
         }
 
-        public function login($username, $password)
+		public function sendTwoStep($id_or_username)
+		{
+			if(ctype_digit($id_or_username)) {
+                $u = new User($id_or_username);
+            } else {
+                $u = new User();
+                $u->select($id_or_username, 'username');
+            }
+
+            if($u->ok())
+            {
+                $u->twostep = $this->generateNewTwoStep();
+                $u->update();
+            }
+
+			// At this point you would send the 2FA code to the user somehow.
+			// This could be via an email, text, etc. It's up to you to write
+			// a function to deliver the code.
+			// some_function($u->twostep);
+		}
+
+        public function login($username, $password, $twostep = null)
         {
             $this->loggedIn = false;
 
@@ -51,6 +72,12 @@
 
             if($row === false)
                 return false;
+
+			if(Config::get('useTwoStepAuth')) {
+				if($twostep !==  $row['twostep']) {
+					return false;
+				}
+			}
 
             $this->id       = $row['id'];
             $this->nid      = $row['nid'];
@@ -94,6 +121,16 @@
         {
             return ($this->user->level === 'admin');
         }
+
+		public function generateNewTwoStep()
+		{
+			$twostep = '';
+			while(strlen($twostep) < 6) {
+				$twostep .= preg_replace('/[^0-9]/', '', sha1(microtime() . self::SALT));
+			}
+			$twostep = substr($twostep, 0, 6);
+			return $twostep;
+		}
 
         public function changeCurrentUsername($new_username)
         {
@@ -155,12 +192,6 @@
 
         public static function createNewUser($username, $password = null)
         {
-			$db = Database::getDatabase();
-
-            $user_exists = $db->getValue("SELECT COUNT(*) FROM users WHERE username = " . $db->quote($username));
-            if($user_exists > 0)
-                return false;
-
             if(is_null($password))
                 $password = Auth::generateStrongPassword();
 
@@ -169,8 +200,6 @@
             $u->username = $username;
             $u->nid = self::newNid();
             $u->password = self::hashedPassword($password);
-			$u->api_key = User::randomAPIKey();
-			$u->level = 'user';
             $u->insert();
             return $u;
         }
@@ -262,7 +291,7 @@
             if($b['x'] < time())
                 return false;
 
-            $computed_sig = md5(str_rot13(base64_encode($ccookie)) . $b['x'] . self::SALT);
+            $computed_sig = sha1(str_rot13(base64_encode($ccookie)) . $b['x'] . self::SALT);
             if($computed_sig != $b['s'])
                 return false;
 
@@ -292,7 +321,7 @@
             if(!isset($_COOKIE['A']))
             {
                 srand(time());
-                $a = md5(rand() . microtime());
+                $a = sha1(rand() . microtime());
                 setcookie('A', $a, $this->expiryDate, '/', Config::get('authDomain'));
             }
         }
@@ -305,7 +334,7 @@
             $c = base64_encode($c);
             $c = str_rot13($c);
 
-            $sig = md5($c . $this->expiryDate . self::SALT);
+            $sig = sha1($c . $this->expiryDate . self::SALT);
             $b = "x={$this->expiryDate}&s=$sig";
             $b = base64_encode($b);
             $b = str_rot13($b);
@@ -335,12 +364,12 @@
 
         private static function hashedPassword($password)
         {
-            return md5($password . self::SALT);
+            return sha1($password . self::SALT);
         }
 
         private static function newNid()
         {
             srand(time());
-            return md5(rand() . microtime());
+            return sha1(rand() . microtime());
         }
     }

@@ -9,25 +9,19 @@
     define('DOC_ROOT', realpath(dirname(__FILE__) . '/../'));
 
     // Global include files
-    require DOC_ROOT . '/includes/functions.inc.php';  // spl_autoload_register() is contained in this file
+    require DOC_ROOT . '/includes/functions.inc.php';
     require DOC_ROOT . '/includes/class.dbobject.php'; // DBOBject...
     require DOC_ROOT . '/includes/class.objects.php';  // and its subclasses
 
-    // Fix magic quotes
-    if(get_magic_quotes_gpc())
-    {
-        $_POST    = fix_slashes($_POST);
-        $_GET     = fix_slashes($_GET);
-        $_REQUEST = fix_slashes($_REQUEST);
-        $_COOKIE  = fix_slashes($_COOKIE);
-    }
+	spl_autoload_register('spf_autoload');
 
     // Load our config settings
     $Config = Config::getConfig();
 
     // Store session info in the database?
-    if(Config::get('useDBSessions') === true)
+    if(Config::get('useDBSessions') === true) {
         DBSession::register();
+	}
 
     // Initialize our session
     session_name('spfs');
