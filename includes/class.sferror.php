@@ -1,5 +1,5 @@
 <?PHP
-    class Error
+    class SPFError
     {
         // Singleton object. Leave $me alone.
         private static $me;
@@ -17,7 +17,7 @@
         public static function getError()
         {
             if(is_null(self::$me))
-                self::$me = new Error();
+                self::$me = new SPFError();
             return self::$me;
         }
 
@@ -84,12 +84,10 @@
         // Returns error alerts
         public function alert()
         {
-            if(count($this->errors) == 0)
-                return '';
-
-            $out = '';
+            if(count($this->errors) == 0) return '';
+			$out = '';
             foreach($this->errors as $error)
-                $out .= "<p class='alert error'>" . implode(' ', $error) . "</p>";
+				$out .= "<p class='alert error'>" . implode(' ', $error) . "</p>";
 
             return $out;
         }
@@ -169,7 +167,7 @@
         // Is an email address valid?
         public function email($val, $id = 'email')
         {
-            if(!preg_match("/^([_a-z0-9+-]+)(\.[_a-z0-9-]+)*@([a-z0-9-]+)(\.[a-z0-9-]+)*(\.[a-z]{2,24})$/i", $val))
+            if(!preg_match("/^.+@.+\..+$/i", $val))
             {
                 $this->add($id, 'The email address you entered is not valid.');
                 return false;
@@ -193,7 +191,7 @@
         // Is a birth date at least 18 years old?
         public function adult($val, $id)
         {
-            if( dater_utc($val) > ( (date('Y') - 18) . date('-m-d H:i:s') ) )
+            if( dater($val) > ( (date('Y') - 18) . date('-m-d H:i:s') ) )
             {
                 $this->add($id, 'You must be at least 18 years old.');
                 return false;

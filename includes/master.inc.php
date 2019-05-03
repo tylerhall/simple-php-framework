@@ -31,7 +31,7 @@
     $Auth = Auth::getAuth();
 
     // Object for tracking and displaying error messages
-    $Error = Error::getError();
+    $Error = SPFError::getError();
 
     // If you need to bootstrap a first user into the database, you can run this line once
     // Auth::createNewUser('username', 'password');
