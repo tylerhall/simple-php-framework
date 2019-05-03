@@ -49,6 +49,11 @@
 
             return $value; // Seriously.
         }
+		
+		public function __unset($key)
+		{
+			unset($this->columns[$key]);
+		}
 
 		public function __isset($key)
 		{
