@@ -190,7 +190,7 @@
             }
         }
 
-        public static function createNewUser($username, $password = null)
+        public static function createNewUser($username, $password = null, $level = 'user')
         {
             if(is_null($password))
                 $password = Auth::generateStrongPassword();
@@ -200,6 +200,7 @@
             $u->username = $username;
             $u->nid = self::newNid();
             $u->password = self::hashedPassword($password);
+	    $u->level = $level;
             $u->insert();
             return $u;
         }
