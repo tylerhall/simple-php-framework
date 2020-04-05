@@ -1,0 +1,18 @@
+{
+    "require-dev": {
+        "vimeo/psalm": "^3.10",
+        "jakub-onderka/php-parallel-lint": "^1.0",
+        "squizlabs/php_codesniffer": "^3.4.0"
+    },
+    "scripts": {
+       "lint" : "php vendor/bin/parallel-lint --exclude vendor includes",
+       "phpcs": "@php vendor/bin/phpcs --standard=PSR12 --exclude=Generic.Files.LineLength ./includes",
+       "phpcbf": "@php vendor/bin/phpcbf --standard=PSR12 ./includes",
+       "psalm": "@php vendor/bin/psalm --show-info=false"
+    },
+    "autoload": {
+        "files" : [
+            "includes/functions.inc.php"
+        ]
+    }
+}
