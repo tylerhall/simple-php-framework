@@ -37,7 +37,7 @@
         public function current()
         {
             mysqli_data_seek($this->result, $this->position);
-            $row = mysqli_fetch_array($this->result, MYSQL_ASSOC);
+            $row = mysqli_fetch_array($this->result, MYSQLI_ASSOC);
             if($row === false)
                 return false;
 
