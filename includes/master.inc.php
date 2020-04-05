@@ -1,4 +1,5 @@
 <?PHP
+
     // Application flag
     define('SPF', true);
 
@@ -13,15 +14,15 @@
     require DOC_ROOT . '/includes/class.dbobject.php'; // DBOBject...
     require DOC_ROOT . '/includes/class.objects.php';  // and its subclasses
 
-	spl_autoload_register('spf_autoload');
+    spl_autoload_register('spf_autoload');
 
     // Load our config settings
     $Config = Config::getConfig();
 
     // Store session info in the database?
-    if(Config::get('useDBSessions') === true) {
-        DBSession::register();
-	}
+if (Config::get('useDBSessions') === true) {
+    DBSession::register();
+}
 
     // Initialize our session
     session_name('spfs');
