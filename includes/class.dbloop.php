@@ -36,8 +36,8 @@
 
         public function current()
         {
-            mysql_data_seek($this->result, $this->position);
-            $row = mysql_fetch_array($this->result, MYSQL_ASSOC);
+            mysqli_data_seek($this->result, $this->position);
+            $row = mysqli_fetch_array($this->result, MYSQL_ASSOC);
             if($row === false)
                 return false;
 
@@ -65,14 +65,14 @@
 
         public function valid()
         {
-            if($this->position < mysql_num_rows($this->result))
-                return mysql_data_seek($this->result, $this->position);
+            if($this->position < mysqli_num_rows($this->result))
+                return mysqli_data_seek($this->result, $this->position);
             else
                 return false;
         }
 
         public function count()
         {
-            return mysql_num_rows($this->result);
+            return mysqli_num_rows($this->result);
         }
     }
