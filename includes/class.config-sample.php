@@ -87,7 +87,7 @@
         private function production()
         {
 			ini_set('display_errors', '0');
-            ini_set('error_reporting', E_NONE);
+            ini_set('error_reporting', 0); // disable
 
             define('WEB_ROOT', '/');
 

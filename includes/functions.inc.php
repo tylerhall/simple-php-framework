@@ -1,4 +1,15 @@
 <?PHP
+
+    function dater_utc($seconds = null) 
+    {
+        if($seconds === null) {
+            $seconds = time();
+        }
+        $dt = new DateTime('@' . $seconds);
+        $dt->setTimezone(new DateTimeZone('UTC'));
+        return $dt->format('Y-m-d H:i:s');
+    }
+
 	function twitterfy($str)
 	{
 	    // Via http://www.snipe.net/2009/09/php-twitter-clickable-links/
