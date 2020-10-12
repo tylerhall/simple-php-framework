@@ -15,7 +15,7 @@ CREATE TABLE `sessions` (
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nid` varchar(32) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `nid` varchar(40) COLLATE utf8_unicode_ci DEFAULT NULL,
   `username` varchar(65) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `password` varchar(65) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `level` enum('user','admin') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'user',
