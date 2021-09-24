@@ -21,5 +21,6 @@ CREATE TABLE `users` (
   `level` enum('user','admin') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'user',
   `twostep` varchar(6) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `nid` (`nid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
