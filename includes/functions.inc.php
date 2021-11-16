@@ -53,7 +53,7 @@
     // Given a string such as "comment_123" or "id_57", it returns the final, numeric id.
     function split_id($str)
     {
-        return match('/[_-]([0-9]+)$/', $str, 1);
+        return spf_match('/[_-]([0-9]+)$/', $str, 1);
     }
 
     // Creates a friendly URL slug from a string
@@ -68,7 +68,7 @@
     // Computes the *full* URL of the current page (protocol, server, path, query parameters, etc)
     function full_url()
     {
-        $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+        $s = empty($_SERVER['HTTPS']) ? '' : (($_SERVER['HTTPS'] == 'on') ? 's' : '');
         $protocol = substr(strtolower($_SERVER['SERVER_PROTOCOL']), 0, strpos(strtolower($_SERVER['SERVER_PROTOCOL']), '/')) . $s;
         $port = ($_SERVER['SERVER_PORT'] == '80') ? '' : (":".$_SERVER['SERVER_PORT']);
         return $protocol . "://" . $_SERVER['HTTP_HOST'] . $port . $_SERVER['REQUEST_URI'];
@@ -476,7 +476,7 @@
     }
 
     // Quick wrapper for preg_match
-    function match($regex, $str, $i = 0)
+    function spf_match($regex, $str, $i = 0)
     {
         if(preg_match($regex, $str, $match) == 1)
             return $match[$i];
